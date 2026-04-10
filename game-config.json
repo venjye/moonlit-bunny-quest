@@ -1,123 +1,119 @@
 {
   "studio": "乐予爱游戏",
-  "title": "月野寻光记",
-  "hook": "露娜背着一只会蓄光的玻璃小包，从暮色草坡一路走到霜白月海。每一关都会生出新的林地、风声与守夜旅伴，她要在一百道月门前，把散落的胡萝卜星火一颗颗带回家。",
-  "seed": 271828,
+  "title": "月塔归兔",
+  "hook": "小兔露娜要穿过月塔、集齐月铃碎片，把被夜雾偷走的归家路重新点亮。",
+  "seed": 314159,
+  "grid": {
+    "cols": 13,
+    "rows": 13,
+    "tileSize": 48
+  },
   "player": {
     "name": "露娜",
-    "baseSpeed": 228,
-    "dashMultiplier": 1.75,
-    "maxEnergy": 6
+    "hp": 960,
+    "atk": 78,
+    "def": 42,
+    "gold": 0,
+    "keys": {
+      "yellow": 1,
+      "blue": 0,
+      "red": 0
+    }
   },
-  "progression": {
-    "totalLevels": 100,
-    "baseRequiredCarrots": 3,
-    "maxRequiredCarrots": 10,
-    "hazardBase": 2,
-    "hazardGrowthEvery": 8
+  "modes": {
+    "story": {
+      "label": "故事模式",
+      "description": "12 层主线剧情，每层都推进露娜回家的线索。",
+      "floorCount": 12
+    },
+    "adventure": {
+      "label": "冒险模式",
+      "description": "100 层长线爬塔，资源更紧，路线更像经典魔塔。",
+      "floorCount": 100
+    },
+    "endless": {
+      "label": "无尽模式",
+      "description": "月塔持续生长，直到露娜停下。"
+    }
   },
-  "chapters": [
+  "storyBeats": [
+    "露娜在塔底捡到第一片月铃碎片，确认失踪的姐姐曾来过这里。",
+    "第二层的旧布偶还带着温度，像刚刚有人抱过它。",
+    "纸灯信使说，真正锁住归途的不是门，而是被刻意改写的记忆。",
+    "露娜在断桥边看见姐姐留下的胡萝卜徽记，却被夜雾刮去了尾字。",
+    "塔中的守卫并非天生凶恶，它们只是被命令拖慢所有向上的脚步。",
+    "第五层后，露娜发现每一把钥匙都对应姐姐的一段留言。",
+    "被封住的回廊尽头藏着旧地图，标着一座从镇志里被删除的月塔。",
+    "高处的商人承认自己见过露娜的姐姐，但不肯白白说出真相。",
+    "塔里的月铃开始共鸣，露娜听见姐姐在风里留下的密码。",
+    "所有守门者都在重复同一句话：回家的人不该记得今晚发生过什么。",
+    "塔顶前夜，露娜意识到姐姐不是失踪，而是在替整座镇子挡住夜雾。",
+    "真相揭开：露娜必须接过月铃，让姐姐终于能从塔顶回家。"
+  ],
+  "biomes": [
     {
-      "name": "雾绒原",
-      "skyTop": "#abcfe2",
-      "skyBottom": "#f5d6a0",
-      "ground": "#e3ca94",
-      "accent": "#f08a44",
-      "leaf": "#5c8a65",
-      "mist": "#ffffff",
-      "water": "#9ad6dd",
-      "landforms": ["蒲草坡", "晨露田", "风睡谷", "浮莓岸"],
-      "goalNames": ["薄雾月门", "曙光月门", "露珠月门"],
-      "npcs": ["邮差知更鸟", "蒲公英裁缝", "青蛙灯匠", "铃铛獾"],
-      "storyBeats": [
-        "草浪里藏着刚醒的星火，风一吹就会发亮。",
-        "薄雾把路抹得柔软，像把月光包在棉花里。",
-        "旅伴说，晨露田喜欢记住跑得最稳的人。"
+      "name": "雾绒前厅",
+      "skyTop": "#51648a",
+      "skyBottom": "#1c2231",
+      "floor": "#2c2635",
+      "wall": "#7b6474",
+      "accent": "#f5cb82"
+    },
+    {
+      "name": "镜桥回廊",
+      "skyTop": "#5c6a92",
+      "skyBottom": "#1e2638",
+      "floor": "#242133",
+      "wall": "#726181",
+      "accent": "#f4a9a7"
+    },
+    {
+      "name": "夜莓温室",
+      "skyTop": "#5a5a84",
+      "skyBottom": "#1c1d2d",
+      "floor": "#2a2436",
+      "wall": "#62526b",
+      "accent": "#f19cda"
+    },
+    {
+      "name": "钟楼斜厅",
+      "skyTop": "#4b5e79",
+      "skyBottom": "#172030",
+      "floor": "#26232b",
+      "wall": "#6f6659",
+      "accent": "#efd767"
+    }
+  ],
+  "shops": [
+    {
+      "title": "胡萝卜补给车",
+      "greeting": "兔旅人，金币换命，别让自己倒在门前。",
+      "offers": [
+        { "type": "hp", "label": "月露药瓶 +240", "cost": 24, "value": 240 },
+        { "type": "atk", "label": "磨亮胡萝卜剑 +8", "cost": 28, "value": 8 },
+        { "type": "def", "label": "绒盾补线 +8", "cost": 28, "value": 8 }
       ]
     },
     {
-      "name": "银溪湾",
-      "skyTop": "#88bbd2",
-      "skyBottom": "#f0c49f",
-      "ground": "#d8c49b",
-      "accent": "#ffad5b",
-      "leaf": "#4a7f6d",
-      "mist": "#def5ff",
-      "water": "#69b8d1",
-      "landforms": ["银溪桥", "水灯滩", "波纹石庭", "流萤汊口"],
-      "goalNames": ["潮息月门", "水镜月门", "涟漪月门"],
-      "npcs": ["河狸船长", "潮音猫头鹰", "风铃河马", "雨靴田鼠"],
-      "storyBeats": [
-        "银溪会把跑过它的人影折成细细的月纹。",
-        "水灯滩的胡萝卜像浸了蜂蜜，连影子都在发甜。",
-        "今晚的河风很轻，适合一口气穿过长长的石桥。"
-      ]
-    },
-    {
-      "name": "琥珀林",
-      "skyTop": "#7ea0cb",
-      "skyBottom": "#f4c17c",
-      "ground": "#cba46c",
-      "accent": "#ff9854",
-      "leaf": "#586f43",
-      "mist": "#ffe8be",
-      "water": "#8cc6ac",
-      "landforms": ["枫灯坡", "落琥谷", "栗壳径", "蜂歌林"],
-      "goalNames": ["秋焰月门", "林歌月门", "琥珀月门"],
-      "npcs": ["栗尾松鼠", "风衣刺猬", "守林狐", "蜜罐熊"],
-      "storyBeats": [
-        "每一片落叶都像慢慢降下来的金色信笺。",
-        "琥珀林不催人快，它只想看露娜走得漂亮。",
-        "树影深的时候，胡萝卜的光会先替你找到路。"
-      ]
-    },
-    {
-      "name": "镜湖庭",
-      "skyTop": "#7ba3ca",
-      "skyBottom": "#f8c5b5",
-      "ground": "#d8cfba",
-      "accent": "#ffad76",
-      "leaf": "#547689",
-      "mist": "#edf7ff",
-      "water": "#6bb3d8",
-      "landforms": ["镜砂岛", "鸢尾堤", "蓝影庭", "月舟泊"],
-      "goalNames": ["明镜月门", "湖心月门", "潮汐月门"],
-      "npcs": ["白鹭画师", "玻璃鹿", "夜航天鹅", "纸船海狸"],
-      "storyBeats": [
-        "镜湖会把每个决定照成两种颜色，再交给你挑一条走。",
-        "蓝影庭最安静的时候，连脚步都像会开花。",
-        "只要不慌，月舟泊总会把最窄的路铺成一条线。"
-      ]
-    },
-    {
-      "name": "星穹圃",
-      "skyTop": "#5f7bb3",
-      "skyBottom": "#d9a4c0",
-      "ground": "#9c8ab0",
-      "accent": "#ffd27a",
-      "leaf": "#6ea39d",
-      "mist": "#f4e7ff",
-      "water": "#92c9ff",
-      "landforms": ["紫藤梯", "观星阶", "月莓园", "听潮塔下"],
-      "goalNames": ["星纱月门", "织夜月门", "花火月门"],
-      "npcs": ["夜樱鹿", "织星鼹鼠", "巡游猫灵", "钟楼兔伯伯"],
-      "storyBeats": [
-        "星穹圃的夜色会把呼吸也染成浅浅的蓝。",
-        "观星阶上每一步都很轻，像踩在正在发芽的愿望上。",
-        "钟楼兔伯伯说，走到第九十九关时，月光会亲手替你开门。"
+      "title": "纸鹤秘铺",
+      "greeting": "上层风更硬，你得提前准备。",
+      "offers": [
+        { "type": "hp", "label": "月糖糕点 +320", "cost": 34, "value": 320 },
+        { "type": "atk", "label": "月纹短剑 +10", "cost": 38, "value": 10 },
+        { "type": "def", "label": "星线披风 +10", "cost": 38, "value": 10 }
       ]
     }
   ],
-  "hazards": [
-    { "type": "bramble", "name": "荆棘团", "color": "#9d5968" },
-    { "type": "mud", "name": "软泥洼", "color": "#8d6642" },
-    { "type": "fog", "name": "迷雾团", "color": "#7cb7cf" },
-    { "type": "shard", "name": "月玻璃碎片", "color": "#d7e6ff" }
+  "enemies": [
+    { "name": "苔壳蜗兵", "hp": 110, "atk": 48, "def": 20, "gold": 8, "color": "#93c7a0" },
+    { "name": "纸面乌鸦", "hp": 160, "atk": 70, "def": 32, "gold": 11, "color": "#d3d2f2" },
+    { "name": "影钉守卫", "hp": 250, "atk": 96, "def": 44, "gold": 16, "color": "#d09aba" },
+    { "name": "铁铃獾兵", "hp": 340, "atk": 128, "def": 58, "gold": 22, "color": "#ebb46d" },
+    { "name": "夜雾执事", "hp": 430, "atk": 152, "def": 76, "gold": 28, "color": "#8db7ef" }
   ],
-  "lore": {
-    "mode": "hybrid",
-    "endpoint": "",
-    "model": "auto",
-    "systemPrompt": "你是童话冒险游戏的旁白，请用诗意但简短的中文写一句关卡描述，不超过28字。"
-  }
+  "bosses": [
+    { "name": "暮钟守门兔", "hp": 680, "atk": 188, "def": 92, "gold": 48, "color": "#ffd37f" },
+    { "name": "失光记录官", "hp": 860, "atk": 210, "def": 112, "gold": 58, "color": "#f0a1c9" },
+    { "name": "夜雾钟匠", "hp": 1120, "atk": 242, "def": 134, "gold": 72, "color": "#89d3cb" }
+  ]
 }

@@ -2,101 +2,143 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>月野寻光记</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no"
+    />
+    <title>月塔归兔</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;800&family=Ma+Shan+Zheng&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Noto+Serif+SC:wght@400;500;700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <main class="shell">
-      <section class="hero">
-        <div>
-          <p class="eyebrow">乐予爱游戏</p>
-          <h1 id="game-title">月野寻光记</h1>
-          <p id="game-hook" class="hook">正在召唤月光森林...</p>
-        </div>
-        <div class="hero-badge">
-          <span>兔兔冒险绘卷</span>
-          <strong>100 关动态旅程</strong>
-        </div>
-      </section>
-
-      <section class="layout">
-        <aside class="panel story-panel">
-          <div class="card glass">
-            <h2>旅程面板</h2>
-            <p id="objective-text">载入目标中...</p>
-            <div class="stats">
-              <div>
-                <span class="label">章节</span>
-                <strong id="chapter-name">-</strong>
-              </div>
-              <div>
-                <span class="label">关卡</span>
-                <strong id="level-name">-</strong>
-              </div>
-              <div>
-                <span class="label">胡萝卜</span>
-                <strong id="carrot-count">0 / 0</strong>
-              </div>
-              <div>
-                <span class="label">体力</span>
-                <strong id="energy-count">0</strong>
-              </div>
-            </div>
-            <div class="buttons">
-              <button id="restart-button" type="button">重新冒险</button>
-              <button id="next-button" type="button">进入下一关</button>
-            </div>
+    <main class="game-app">
+      <section class="game-screen">
+        <header class="floating-top">
+          <div class="brand-block">
+            <p class="eyebrow">乐予爱游戏</p>
+            <h1 id="game-title">月塔归兔</h1>
+            <p id="game-hook" class="hook">小兔露娜要像真正的魔塔勇者那样，算清每一步，穿过百层月塔。</p>
           </div>
-
-          <div class="card">
-            <h2>林地耳语</h2>
-            <p id="dialogue-text">靠近旅伴时，会听见新的提醒。</p>
-            <ul id="event-log" class="event-log"></ul>
+          <div class="mode-strip" id="mode-switch">
+            <button class="mode-button is-active" type="button" data-mode="story">故事</button>
+            <button class="mode-button" type="button" data-mode="adventure">冒险</button>
+            <button class="mode-button" type="button" data-mode="endless">无尽</button>
           </div>
-        </aside>
+        </header>
 
-        <section class="panel play-panel">
-          <div class="canvas-frame">
-            <canvas id="game-canvas" width="960" height="540" aria-label="小兔兔冒险画布"></canvas>
-            <div class="canvas-overlay">
+        <section class="floating-stats">
+          <div class="stat-card"><span>楼层</span><strong id="floor-label">1F</strong></div>
+          <div class="stat-card"><span>生命</span><strong id="hp-label">0</strong></div>
+          <div class="stat-card"><span>攻击</span><strong id="atk-label">0</strong></div>
+          <div class="stat-card"><span>防御</span><strong id="def-label">0</strong></div>
+          <div class="stat-card"><span>金币</span><strong id="gold-label">0</strong></div>
+          <div class="stat-card stat-card-wide"><span>钥匙</span><strong id="keys-label">黄0 蓝0 红0</strong></div>
+        </section>
+
+        <section class="board-stage">
+          <div class="board-wrap">
+            <canvas id="game-canvas" width="624" height="624" aria-label="月塔归兔游戏画布"></canvas>
+            <div class="overlay-strip">
               <div class="overlay-pill">
-                <span id="progress-text">旅程 1 / 100</span>
-                <span id="rank-text">月光学徒</span>
+                <span id="chapter-label">归兔卷</span>
+                <strong id="rank-label">月塔新手</strong>
               </div>
-              <div class="overlay-pill overlay-pill-right" id="lore-status">世界织梦器：本地生成</div>
+              <div class="overlay-pill overlay-pill-right" id="status-label">先看清门和钥匙，再决定路线。</div>
             </div>
           </div>
         </section>
 
-        <aside class="panel meta-panel">
-          <div class="card">
-            <h2>操作</h2>
-            <p>`WASD` / 方向键移动，`Shift` 短冲刺。</p>
-            <p>收集胡萝卜后抵达月门，进入下一片月野。</p>
+        <aside class="info-drawer info-drawer-left" id="journal-sheet">
+          <div class="drawer-head">
+            <h2>卷宗</h2>
+            <button class="sheet-toggle" type="button" data-target="journal-sheet">收起</button>
           </div>
-
-          <div class="card">
-            <h2>远行记</h2>
-            <p id="storybeat-text">世界正在编织第一段传说。</p>
+          <div class="drawer-card">
+            <h3>当前目标</h3>
+            <p id="objective-text">载入中...</p>
           </div>
+          <div class="drawer-card">
+            <h3>剧情线索</h3>
+            <p id="storybeat-text">夜雾压着塔门，露娜正在听风。</p>
+          </div>
+          <div class="drawer-card">
+            <h3>行迹记录</h3>
+            <ul id="event-log" class="event-log"></ul>
+          </div>
+          <div class="drawer-card">
+            <h3>进度</h3>
+            <div class="progress-track">
+              <div id="progress-bar" class="progress-fill"></div>
+            </div>
+            <p id="progress-detail">准备入塔。</p>
+          </div>
+        </aside>
 
-          <div class="card">
-            <h2>世界状态</h2>
-            <div class="progress-block">
-              <div class="progress-track">
-                <div id="progress-bar" class="progress-fill"></div>
-              </div>
-              <p id="progress-detail">第 1 关，月光才刚刚落进草叶。</p>
+        <aside class="info-drawer info-drawer-right" id="guide-sheet">
+          <div class="drawer-head">
+            <h2>面板</h2>
+            <button class="sheet-toggle" type="button" data-target="guide-sheet">收起</button>
+          </div>
+          <div class="drawer-card">
+            <h3>操作</h3>
+            <p>桌面端用方向键或 WASD，手机和平板直接按底部触控键。</p>
+          </div>
+          <div class="drawer-card">
+            <h3>相邻提示</h3>
+            <p id="preview-text">靠近门、怪物、商人和楼梯时，这里会给你预判。</p>
+          </div>
+          <div class="drawer-card">
+            <h3>怪物手册</h3>
+            <ul id="handbook-list" class="handbook-list"></ul>
+          </div>
+          <div class="drawer-card">
+            <h3>本局操作</h3>
+            <div class="guide-actions">
+              <button class="hud-button" type="button" id="inspect-button">调查前方</button>
+              <button class="hud-button" type="button" id="save-button">存档</button>
+              <button class="hud-button" type="button" id="load-button">读档</button>
+              <button class="hud-button hud-button-alt" type="button" id="restart-button">重开本局</button>
             </div>
           </div>
         </aside>
+
+        <section class="mobile-quickbar">
+          <button class="quick-button" type="button" data-target="journal-sheet">卷宗</button>
+          <button class="quick-button" type="button" data-target="guide-sheet">面板</button>
+          <div class="quick-stat"><span>HP</span><strong id="mobile-hp-label">0</strong></div>
+          <div class="quick-stat"><span>ATK</span><strong id="mobile-atk-label">0</strong></div>
+          <div class="quick-stat"><span>DEF</span><strong id="mobile-def-label">0</strong></div>
+        </section>
+
+        <section class="touch-controls" aria-label="触屏操作区">
+        <div class="dpad">
+          <button class="touch-button up" type="button" data-key="arrowup">↑</button>
+          <button class="touch-button left" type="button" data-key="arrowleft">←</button>
+          <button class="touch-button down" type="button" data-key="arrowdown">↓</button>
+          <button class="touch-button right" type="button" data-key="arrowright">→</button>
+        </div>
+        <div class="action-pad">
+          <button class="touch-button action" type="button" data-key="inspect">查</button>
+          <button class="touch-button action" type="button" data-key="restart">重</button>
+        </div>
+        </section>
+
+        <section class="ending-panel" id="ending-panel" aria-live="polite">
+          <div class="ending-card">
+            <p class="ending-eyebrow" id="ending-eyebrow">月塔结算</p>
+            <h2 id="ending-title">露娜停下了脚步</h2>
+            <p id="ending-summary">这一局的结果会显示在这里。</p>
+            <div class="guide-actions">
+              <button class="hud-button" type="button" id="ending-restart-button">再来一局</button>
+              <button class="hud-button hud-button-alt" type="button" id="ending-close-button">收起</button>
+            </div>
+          </div>
+        </section>
       </section>
     </main>
 
