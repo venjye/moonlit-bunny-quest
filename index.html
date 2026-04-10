@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>月野寻光记</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;800&family=Ma+Shan+Zheng&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div>
+          <p class="eyebrow">乐予爱游戏</p>
+          <h1 id="game-title">月野寻光记</h1>
+          <p id="game-hook" class="hook">正在召唤月光森林...</p>
+        </div>
+        <div class="hero-badge">
+          <span>兔兔冒险绘卷</span>
+          <strong>100 关动态旅程</strong>
+        </div>
+      </section>
+
+      <section class="layout">
+        <aside class="panel story-panel">
+          <div class="card glass">
+            <h2>旅程面板</h2>
+            <p id="objective-text">载入目标中...</p>
+            <div class="stats">
+              <div>
+                <span class="label">章节</span>
+                <strong id="chapter-name">-</strong>
+              </div>
+              <div>
+                <span class="label">关卡</span>
+                <strong id="level-name">-</strong>
+              </div>
+              <div>
+                <span class="label">胡萝卜</span>
+                <strong id="carrot-count">0 / 0</strong>
+              </div>
+              <div>
+                <span class="label">体力</span>
+                <strong id="energy-count">0</strong>
+              </div>
+            </div>
+            <div class="buttons">
+              <button id="restart-button" type="button">重新冒险</button>
+              <button id="next-button" type="button">进入下一关</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>林地耳语</h2>
+            <p id="dialogue-text">靠近旅伴时，会听见新的提醒。</p>
+            <ul id="event-log" class="event-log"></ul>
+          </div>
+        </aside>
+
+        <section class="panel play-panel">
+          <div class="canvas-frame">
+            <canvas id="game-canvas" width="960" height="540" aria-label="小兔兔冒险画布"></canvas>
+            <div class="canvas-overlay">
+              <div class="overlay-pill">
+                <span id="progress-text">旅程 1 / 100</span>
+                <span id="rank-text">月光学徒</span>
+              </div>
+              <div class="overlay-pill overlay-pill-right" id="lore-status">世界织梦器：本地生成</div>
+            </div>
+          </div>
+        </section>
+
+        <aside class="panel meta-panel">
+          <div class="card">
+            <h2>操作</h2>
+            <p>`WASD` / 方向键移动，`Shift` 短冲刺。</p>
+            <p>收集胡萝卜后抵达月门，进入下一片月野。</p>
+          </div>
+
+          <div class="card">
+            <h2>远行记</h2>
+            <p id="storybeat-text">世界正在编织第一段传说。</p>
+          </div>
+
+          <div class="card">
+            <h2>世界状态</h2>
+            <div class="progress-block">
+              <div class="progress-track">
+                <div id="progress-bar" class="progress-fill"></div>
+              </div>
+              <p id="progress-detail">第 1 关，月光才刚刚落进草叶。</p>
+            </div>
+          </div>
+        </aside>
+      </section>
+    </main>
+
+    <script type="module" src="./game.js"></script>
+  </body>
+</html>
