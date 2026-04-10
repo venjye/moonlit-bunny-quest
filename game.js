@@ -233,47 +233,62 @@ function makeEnemy(index, random, isBoss = false) {
 const MAGIC_TOWER_LAYOUTS = [
   [
     "WWWWWWWWWWWWW",
-    "WE..yW..E..UW",
-    "W.WWYW.WWW.WW",
-    "W.p..W..aW..W",
-    "WWW.WWW.W.W.W",
-    "W..E..B..E..W",
-    "W.WWW.WWW.W.W",
-    "W..dW..gW..bW",
-    "W.W.WWW.WWW.W",
-    "W..Y..E..R..W",
-    "WW.WWW.WWW.WW",
-    "WS..p..T..r.W",
-    "WWWWWWWWWWWWW",
-  ],
-  [
-    "WWWWWWWWWWWWW",
-    "WU..E..R..rEW",
-    "W.WWW.WWW.W.W",
-    "W..aW..E..p.W",
-    "WWY.W.W.WWW.W",
-    "Wy..W.N.W..gW",
-    "W.WWW.B.W.WWW",
-    "W..E..b..E..W",
-    "W.W.WWWWW.W.W",
-    "Wp..Y..d..E.W",
-    "WWW.W.W.WWW.W",
-    "WS..gW..T..yW",
-    "WWWWWWWWWWWWW",
-  ],
-  [
-    "WWWWWWWWWWWWW",
-    "WE..g..X...UW",
-    "W.WWWWWYWWW.W",
-    "Wy..E..p..a.W",
-    "WWW.W.WWW.WWW",
-    "W..B..b..E..W",
-    "W.WWW.W.WWW.W",
-    "W..p..N..d..W",
+    "W...YW..E..UW",
+    "W.p.yW.WWW.WW",
+    "W...EW.Wg..aW",
     "WWW.WWW.W.WWW",
+    "W..E...W...bW",
+    "W.WWWWWBWWW.W",
+    "W.d..EW...E.W",
+    "WWWW.W.WWW.WW",
+    "W..y.Y...R.rW",
+    "W.WWWWWWWWW.W",
+    "WS..p..T..g.W",
+    "WWWWWWWWWWWWW",
+  ],
+  [
+    "WWWWWWWWWWWWW",
+    "WU..E..R..r.W",
+    "WW.WWW.WWW.WW",
+    "Wa..W..E..p.W",
+    "W.WYWW.W.WW.W",
+    "Wy..W.N.W..gW",
+    "WWW.WWWBWWW.W",
+    "W..E..b..E..W",
+    "W.WWWWWWW.WWW",
+    "Wp..Y..d..E.W",
+    "W.W.WWW.WWW.W",
+    "WSW.g..T..y.W",
+    "WWWWWWWWWWWWW",
+  ],
+  [
+    "WWWWWWWWWWWWW",
+    "W..g..X..R.UW",
+    "W.WWWWWYWWWWW",
+    "Wy..E..p..a.W",
+    "WWW.WWWWW.WWW",
+    "W..B..b..E..W",
+    "W.WWW.WWWWW.W",
+    "W..p..N..d..W",
+    "W.WWWWW.WWW.W",
     "W..E..Y..r..W",
-    "W.WWW.WWWR.WW",
+    "WWW.WWWRWWW.W",
     "WS..y..T..E.W",
+    "WWWWWWWWWWWWW",
+  ],
+  [
+    "WWWWWWWWWWWWW",
+    "W..E..Y..X.UW",
+    "W.WWWWWWW.WWW",
+    "W.p..yW..g..W",
+    "WWW.W.W.WWW.W",
+    "W..E.W.W..b.W",
+    "W.WWWBWWWWW.W",
+    "Wa..W.N.W..EW",
+    "W.W.WWW.WWW.W",
+    "W..d..Y..r..W",
+    "WWWWWWW.WWW.W",
+    "WS..p..T..g.W",
     "WWWWWWWWWWWWW",
   ],
 ];
@@ -843,41 +858,47 @@ function drawSparkle(cx, cy, radius, color, alpha = 1) {
 
 function drawTileBase(x, y, size, biome, row, col) {
   const floorGradient = ctx.createLinearGradient(x, y, x + size, y + size);
-  floorGradient.addColorStop(0, "#4c3e47");
+  floorGradient.addColorStop(0, "#355b52");
   floorGradient.addColorStop(0.62, biome.floor);
-  floorGradient.addColorStop(1, "#211a24");
+  floorGradient.addColorStop(1, "#1b2425");
   ctx.fillStyle = floorGradient;
   ctx.fillRect(x, y, size, size);
-  ctx.fillStyle = (row + col) % 2 === 0 ? "rgba(255,249,236,0.06)" : "rgba(0,0,0,0.09)";
-  ctx.fillRect(x + 3, y + 3, size - 6, size - 6);
-  ctx.strokeStyle = "rgba(255,249,236,0.12)";
+  ctx.fillStyle = (row + col) % 2 === 0 ? "rgba(250,236,193,0.08)" : "rgba(0,0,0,0.08)";
+  ctx.fillRect(x + 2, y + 2, size - 4, size - 4);
+  ctx.strokeStyle = "rgba(250,236,193,0.2)";
   ctx.lineWidth = 1;
   ctx.strokeRect(x + 0.5, y + 0.5, size - 1, size - 1);
-  ctx.strokeStyle = "rgba(0,0,0,0.16)";
+  ctx.strokeStyle = "rgba(0,0,0,0.18)";
   ctx.beginPath();
-  ctx.moveTo(x + 5, y + size - 6);
-  ctx.lineTo(x + size - 6, y + 5);
+  ctx.moveTo(x + size * 0.24, y + size * 0.5);
+  ctx.lineTo(x + size * 0.76, y + size * 0.5);
+  ctx.moveTo(x + size * 0.5, y + size * 0.24);
+  ctx.lineTo(x + size * 0.5, y + size * 0.76);
   ctx.stroke();
 }
 
 function drawWall(x, y, size, biome, row, col) {
   const gradient = ctx.createLinearGradient(x, y, x, y + size);
-  gradient.addColorStop(0, "#b3927d");
+  gradient.addColorStop(0, "#c9b46d");
   gradient.addColorStop(0.52, biome.wall);
-  gradient.addColorStop(1, "#3f3038");
+  gradient.addColorStop(1, "#263636");
   ctx.fillStyle = gradient;
   ctx.fillRect(x, y, size, size);
-  ctx.fillStyle = "rgba(255,249,236,0.16)";
-  ctx.fillRect(x + 5, y + 7, size - 10, 3);
-  ctx.fillRect(x + 5, y + size * 0.5, size - 10, 3);
-  ctx.fillStyle = "rgba(28,18,26,0.28)";
-  ctx.fillRect(x + size * 0.46, y + 10, 3, size * 0.34);
-  ctx.fillRect(x + size * 0.23, y + size * 0.55, 3, size * 0.3);
-  ctx.fillRect(x + size * 0.72, y + size * 0.55, 3, size * 0.3);
-  ctx.strokeStyle = "rgba(0,0,0,0.26)";
+  ctx.fillStyle = "rgba(255,246,206,0.18)";
+  ctx.fillRect(x + 3, y + 5, size - 6, Math.max(2, size * 0.06));
+  ctx.fillRect(x + 3, y + size * 0.38, size - 6, Math.max(2, size * 0.05));
+  ctx.fillRect(x + 3, y + size * 0.7, size - 6, Math.max(2, size * 0.05));
+  ctx.fillStyle = "rgba(21,28,29,0.34)";
+  ctx.fillRect(x + size * 0.34, y + 7, Math.max(2, size * 0.05), size * 0.29);
+  ctx.fillRect(x + size * 0.68, y + 7, Math.max(2, size * 0.05), size * 0.29);
+  ctx.fillRect(x + size * 0.18, y + size * 0.41, Math.max(2, size * 0.05), size * 0.27);
+  ctx.fillRect(x + size * 0.52, y + size * 0.41, Math.max(2, size * 0.05), size * 0.27);
+  ctx.fillRect(x + size * 0.36, y + size * 0.73, Math.max(2, size * 0.05), size * 0.22);
+  ctx.fillRect(x + size * 0.76, y + size * 0.73, Math.max(2, size * 0.05), size * 0.22);
+  ctx.strokeStyle = "rgba(0,0,0,0.34)";
   ctx.strokeRect(x + 0.5, y + 0.5, size - 1, size - 1);
   if ((row + col) % 5 === 0) {
-    drawSparkle(x + size * 0.75, y + size * 0.25, size * 0.08, "#ffd36e", 0.6);
+    drawSparkle(x + size * 0.75, y + size * 0.25, size * 0.06, "#ffd36e", 0.45);
   }
 }
 
@@ -898,11 +919,13 @@ function drawStairs(x, y, size, time) {
 function drawDoor(tile, x, y, size) {
   const color = tile.color === "yellow" ? "#ffd36e" : tile.color === "blue" ? "#79d7c2" : "#ff8ba0";
   const dark = tile.color === "yellow" ? "#8c6134" : tile.color === "blue" ? "#2d6861" : "#843848";
-  drawRoundedRect(x + size * 0.18, y + size * 0.12, size * 0.64, size * 0.76, 8, dark);
-  drawRoundedRect(x + size * 0.23, y + size * 0.17, size * 0.54, size * 0.68, 6, color);
-  ctx.fillStyle = "rgba(255,247,232,0.2)";
-  ctx.fillRect(x + size * 0.29, y + size * 0.23, size * 0.42, 3);
-  ctx.fillRect(x + size * 0.5, y + size * 0.2, 3, size * 0.58);
+  drawRoundedRect(x + size * 0.16, y + size * 0.1, size * 0.68, size * 0.8, 5, "#211c1a");
+  drawRoundedRect(x + size * 0.2, y + size * 0.15, size * 0.6, size * 0.72, 4, dark);
+  drawRoundedRect(x + size * 0.25, y + size * 0.2, size * 0.5, size * 0.62, 3, color);
+  ctx.fillStyle = "rgba(255,247,232,0.28)";
+  ctx.fillRect(x + size * 0.3, y + size * 0.28, size * 0.4, Math.max(2, size * 0.04));
+  ctx.fillRect(x + size * 0.3, y + size * 0.48, size * 0.4, Math.max(2, size * 0.04));
+  ctx.fillRect(x + size * 0.3, y + size * 0.68, size * 0.4, Math.max(2, size * 0.04));
   ctx.fillStyle = "#2a1c1c";
   ctx.beginPath();
   ctx.arc(x + size * 0.62, y + size * 0.52, size * 0.055, 0, TAU);
