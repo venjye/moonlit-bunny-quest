@@ -53,34 +53,34 @@
   "biomes": [
     {
       "name": "雾绒前厅",
-      "skyTop": "#51648a",
-      "skyBottom": "#1c2231",
-      "floor": "#2c2635",
-      "wall": "#7b6474",
+      "skyTop": "#426f63",
+      "skyBottom": "#2a2135",
+      "floor": "#3c3042",
+      "wall": "#8a6b73",
       "accent": "#f5cb82"
     },
     {
       "name": "镜桥回廊",
-      "skyTop": "#5c6a92",
-      "skyBottom": "#1e2638",
-      "floor": "#242133",
-      "wall": "#726181",
+      "skyTop": "#5f7b66",
+      "skyBottom": "#32243f",
+      "floor": "#343041",
+      "wall": "#7b6686",
       "accent": "#f4a9a7"
     },
     {
       "name": "夜莓温室",
-      "skyTop": "#5a5a84",
-      "skyBottom": "#1c1d2d",
-      "floor": "#2a2436",
-      "wall": "#62526b",
+      "skyTop": "#6f5b79",
+      "skyBottom": "#2f263a",
+      "floor": "#382f3f",
+      "wall": "#74596d",
       "accent": "#f19cda"
     },
     {
       "name": "钟楼斜厅",
-      "skyTop": "#4b5e79",
-      "skyBottom": "#172030",
-      "floor": "#26232b",
-      "wall": "#6f6659",
+      "skyTop": "#6d704d",
+      "skyBottom": "#2b2634",
+      "floor": "#38313a",
+      "wall": "#7c6c58",
       "accent": "#efd767"
     }
   ],
