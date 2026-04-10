@@ -139,16 +139,8 @@ function seeded(seed) {
   };
 }
 
-function randomInt(random, min, max) {
-  return Math.floor(random() * (max - min + 1)) + min;
-}
-
 function pick(list, random) {
   return list[Math.floor(random() * list.length)];
-}
-
-function clamp(value, min, max) {
-  return Math.max(min, Math.min(max, value));
 }
 
 function gridConfig() {
@@ -238,35 +230,98 @@ function makeEnemy(index, random, isBoss = false) {
   };
 }
 
-function buildPathCells(cols, rows) {
-  const cells = [];
-  for (let y = rows - 2; y >= 1; y -= 1) {
-    if ((rows - 2 - y) % 2 === 0) {
-      for (let x = 1; x <= cols - 2; x += 1) {
-        cells.push({ x, y });
-      }
-    } else {
-      for (let x = cols - 2; x >= 1; x -= 1) {
-        cells.push({ x, y });
-      }
-    }
+const MAGIC_TOWER_LAYOUTS = [
+  [
+    "WWWWWWWWWWWWW",
+    "WE..yW..E..UW",
+    "W.WWYW.WWW.WW",
+    "W.p..W..aW..W",
+    "WWW.WWW.W.W.W",
+    "W..E..B..E..W",
+    "W.WWW.WWW.W.W",
+    "W..dW..gW..bW",
+    "W.W.WWW.WWW.W",
+    "W..Y..E..R..W",
+    "WW.WWW.WWW.WW",
+    "WS..p..T..r.W",
+    "WWWWWWWWWWWWW",
+  ],
+  [
+    "WWWWWWWWWWWWW",
+    "WU..E..R..rEW",
+    "W.WWW.WWW.W.W",
+    "W..aW..E..p.W",
+    "WWY.W.W.WWW.W",
+    "Wy..W.N.W..gW",
+    "W.WWW.B.W.WWW",
+    "W..E..b..E..W",
+    "W.W.WWWWW.W.W",
+    "Wp..Y..d..E.W",
+    "WWW.W.W.WWW.W",
+    "WS..gW..T..yW",
+    "WWWWWWWWWWWWW",
+  ],
+  [
+    "WWWWWWWWWWWWW",
+    "WE..g..X...UW",
+    "W.WWWWWYWWW.W",
+    "Wy..E..p..a.W",
+    "WWW.W.WWW.WWW",
+    "W..B..b..E..W",
+    "W.WWW.W.WWW.W",
+    "W..p..N..d..W",
+    "WWW.WWW.W.WWW",
+    "W..E..Y..r..W",
+    "W.WWW.WWWR.WW",
+    "WS..y..T..E.W",
+    "WWWWWWWWWWWWW",
+  ],
+];
+
+function rewardValue(item, index) {
+  if (item === "potion") return 160 + index * 18;
+  if (item === "gold") return 14 + index * 4;
+  return 6 + Math.floor(index / 5) * 2;
+}
+
+function tileFromMarker(marker, index, random, floor) {
+  if (marker === "W") return { type: TILE_TYPES.WALL };
+  if (marker === "U") return { type: TILE_TYPES.STAIRS };
+  if (marker === "Y") return { type: TILE_TYPES.DOOR, color: "yellow" };
+  if (marker === "B") return { type: TILE_TYPES.DOOR, color: "blue" };
+  if (marker === "R") return { type: TILE_TYPES.DOOR, color: "red" };
+  if (marker === "y") return { type: TILE_TYPES.ITEM, item: "yellowKey", value: 1 };
+  if (marker === "b") return { type: TILE_TYPES.ITEM, item: "blueKey", value: 1 };
+  if (marker === "r") return { type: TILE_TYPES.ITEM, item: "redKey", value: 1 };
+  if (marker === "p") return { type: TILE_TYPES.ITEM, item: "potion", value: rewardValue("potion", index) };
+  if (marker === "a") return { type: TILE_TYPES.ITEM, item: "atkGem", value: rewardValue("atkGem", index) };
+  if (marker === "d") return { type: TILE_TYPES.ITEM, item: "defGem", value: rewardValue("defGem", index) };
+  if (marker === "g") return { type: TILE_TYPES.ITEM, item: "gold", value: rewardValue("gold", index) };
+  if (marker === "E") return { type: TILE_TYPES.ENEMY, enemy: makeEnemy(index + random(), random, false) };
+  if (marker === "X") return { type: TILE_TYPES.ENEMY, enemy: makeEnemy(index + 1, random, true) };
+  if (marker === "N") {
+    const shop = pick(state.config.shops, random);
+    return {
+      type: TILE_TYPES.NPC,
+      npc: {
+        kind: "shop",
+        title: shop.title,
+        greeting: shop.greeting,
+        offers: shop.offers,
+        bought: false,
+      },
+    };
   }
-  return cells;
+  if (marker === "T") return { type: TILE_TYPES.STORY, text: floor.storyBeat };
+  return { type: TILE_TYPES.EMPTY };
 }
 
 function buildFloor(modeKey, index) {
   const { cols, rows } = gridConfig();
   const random = seeded(floorSeed(modeKey, index));
-  const map = createEmptyFloorMap();
   const biome = state.config.biomes[index % state.config.biomes.length];
-  const cells = buildPathCells(cols, rows);
-
-  for (let y = 0; y < rows; y += 1) {
-    for (let x = 0; x < cols; x += 1) {
-      const border = x === 0 || y === 0 || x === cols - 1 || y === rows - 1;
-      map[y][x] = { type: border ? TILE_TYPES.WALL : TILE_TYPES.EMPTY };
-    }
-  }
+  const template = MAGIC_TOWER_LAYOUTS[index % MAGIC_TOWER_LAYOUTS.length];
+  const map = createEmptyFloorMap();
 
   const floor = {
     index,
@@ -294,104 +349,23 @@ function buildFloor(modeKey, index) {
       modeKey === "story"
         ? state.config.storyBeats[Math.min(index, state.config.storyBeats.length - 1)]
         : state.config.modes[modeKey].description,
-    start: cells[0],
-    exit: cells[cells.length - 1],
+    start: { x: 1, y: rows - 2 },
+    exit: { x: cols - 2, y: 1 },
   };
 
-  setTile(floor, floor.start.x, floor.start.y, { type: TILE_TYPES.EMPTY });
-  setTile(floor, floor.exit.x, floor.exit.y, { type: TILE_TYPES.STAIRS });
-
-  const pathSet = new Set(cells.map((cell) => `${cell.x},${cell.y}`));
-  for (let y = 1; y < rows - 1; y += 1) {
-    for (let x = 1; x < cols - 1; x += 1) {
-      if (!pathSet.has(`${x},${y}`)) {
-        setTile(floor, x, y, { type: TILE_TYPES.WALL });
+  for (let y = 0; y < rows; y += 1) {
+    for (let x = 0; x < cols; x += 1) {
+      const marker = template[y]?.[x] || "W";
+      if (marker === "S") {
+        floor.start = { x, y };
+        setTile(floor, x, y, { type: TILE_TYPES.EMPTY });
+        continue;
       }
+      if (marker === "U") {
+        floor.exit = { x, y };
+      }
+      setTile(floor, x, y, tileFromMarker(marker, index, random, floor));
     }
-  }
-
-  const skipStart = 2;
-  const skipEnd = 2;
-  const available = cells.slice(skipStart, cells.length - skipEnd);
-  const placeAtIndex = (indexOnPath, tile) => {
-    if (!available[indexOnPath]) {
-      return;
-    }
-    const spot = available[indexOnPath];
-    setTile(floor, spot.x, spot.y, tile);
-  };
-
-  const doorColors = ["yellow", "yellow", "blue", "yellow", "red"];
-  doorColors.forEach((color, doorIndex) => {
-    const slot = 5 + doorIndex * 6 + randomInt(random, 0, 1);
-    placeAtIndex(slot, { type: TILE_TYPES.DOOR, color });
-    const keySlot = Math.max(0, slot - randomInt(random, 2, 4));
-    placeAtIndex(keySlot, { type: TILE_TYPES.ITEM, item: `${color}Key`, value: 1 });
-  });
-
-  const enemyCount = clamp(7 + Math.floor(index / 2), 8, 22);
-  for (let i = 0; i < enemyCount; i += 1) {
-    const slot = randomInt(random, 1, available.length - 4);
-    const existing = tileAt(floor, available[slot].x, available[slot].y);
-    if (existing.type !== TILE_TYPES.EMPTY) {
-      continue;
-    }
-    setTile(floor, available[slot].x, available[slot].y, {
-      type: TILE_TYPES.ENEMY,
-      enemy: makeEnemy(index + i * 0.4, random, false),
-    });
-  }
-
-  const rewardKinds = ["potion", "atkGem", "defGem", "gold"];
-  const rewardCount = clamp(8 + Math.floor(index / 3), 8, 18);
-  for (let i = 0; i < rewardCount; i += 1) {
-    const slot = randomInt(random, 1, available.length - 4);
-    const existing = tileAt(floor, available[slot].x, available[slot].y);
-    if (existing.type !== TILE_TYPES.EMPTY) {
-      continue;
-    }
-    const kind = pick(rewardKinds, random);
-    setTile(floor, available[slot].x, available[slot].y, {
-      type: TILE_TYPES.ITEM,
-      item: kind,
-      value:
-        kind === "potion"
-          ? 160 + index * 18
-          : kind === "gold"
-            ? 14 + index * 4
-            : 6 + Math.floor(index / 5) * 2,
-    });
-  }
-
-  if (index % 4 === 2) {
-    const slot = clamp(available.length - 9, 1, available.length - 3);
-    const shop = pick(state.config.shops, random);
-    setTile(floor, available[slot].x, available[slot].y, {
-      type: TILE_TYPES.NPC,
-      npc: {
-        kind: "shop",
-        title: shop.title,
-        greeting: shop.greeting,
-        offers: shop.offers,
-        bought: false,
-      },
-    });
-  }
-
-  if (modeKey === "story") {
-    const storySlot = clamp(3 + index * 2, 1, available.length - 4);
-    setTile(floor, available[storySlot].x, available[storySlot].y, {
-      type: TILE_TYPES.STORY,
-      text: floor.storyBeat,
-    });
-  }
-
-  if ((modeKey === "story" && [3, 7, 11].includes(index)) || (modeKey !== "story" && index > 0 && index % 10 === 9)) {
-    const slot = clamp(available.length - 3, 2, available.length - 2);
-    setTile(floor, available[slot].x, available[slot].y, {
-      type: TILE_TYPES.ENEMY,
-      enemy: makeEnemy(index + 1, random, true),
-    });
   }
 
   return floor;
@@ -869,32 +843,39 @@ function drawSparkle(cx, cy, radius, color, alpha = 1) {
 
 function drawTileBase(x, y, size, biome, row, col) {
   const floorGradient = ctx.createLinearGradient(x, y, x + size, y + size);
-  floorGradient.addColorStop(0, biome.floor);
-  floorGradient.addColorStop(1, "#18151e");
-  drawRoundedRect(x + 2, y + 2, size - 4, size - 4, 8, floorGradient);
-  ctx.fillStyle = (row + col) % 2 === 0 ? "rgba(255,247,232,0.045)" : "rgba(0,0,0,0.08)";
-  ctx.fillRect(x + 5, y + 5, size - 10, size - 10);
-  ctx.strokeStyle = "rgba(255,247,232,0.07)";
+  floorGradient.addColorStop(0, "#4c3e47");
+  floorGradient.addColorStop(0.62, biome.floor);
+  floorGradient.addColorStop(1, "#211a24");
+  ctx.fillStyle = floorGradient;
+  ctx.fillRect(x, y, size, size);
+  ctx.fillStyle = (row + col) % 2 === 0 ? "rgba(255,249,236,0.06)" : "rgba(0,0,0,0.09)";
+  ctx.fillRect(x + 3, y + 3, size - 6, size - 6);
+  ctx.strokeStyle = "rgba(255,249,236,0.12)";
   ctx.lineWidth = 1;
+  ctx.strokeRect(x + 0.5, y + 0.5, size - 1, size - 1);
+  ctx.strokeStyle = "rgba(0,0,0,0.16)";
   ctx.beginPath();
-  ctx.moveTo(x + 8, y + size - 10);
-  ctx.lineTo(x + size - 9, y + 9);
+  ctx.moveTo(x + 5, y + size - 6);
+  ctx.lineTo(x + size - 6, y + 5);
   ctx.stroke();
 }
 
 function drawWall(x, y, size, biome, row, col) {
   const gradient = ctx.createLinearGradient(x, y, x, y + size);
-  gradient.addColorStop(0, "#9f7d75");
+  gradient.addColorStop(0, "#b3927d");
   gradient.addColorStop(0.52, biome.wall);
-  gradient.addColorStop(1, "#47323d");
-  drawRoundedRect(x + 2, y + 2, size - 4, size - 4, 8, gradient);
-  ctx.fillStyle = "rgba(255,247,232,0.14)";
-  ctx.fillRect(x + 8, y + 10, size - 16, 3);
-  ctx.fillRect(x + 8, y + size * 0.52, size - 16, 3);
-  ctx.fillStyle = "rgba(30,19,28,0.22)";
-  ctx.fillRect(x + size * 0.48, y + 13, 3, size * 0.34);
-  ctx.fillRect(x + size * 0.25, y + size * 0.56, 3, size * 0.28);
-  ctx.fillRect(x + size * 0.72, y + size * 0.56, 3, size * 0.28);
+  gradient.addColorStop(1, "#3f3038");
+  ctx.fillStyle = gradient;
+  ctx.fillRect(x, y, size, size);
+  ctx.fillStyle = "rgba(255,249,236,0.16)";
+  ctx.fillRect(x + 5, y + 7, size - 10, 3);
+  ctx.fillRect(x + 5, y + size * 0.5, size - 10, 3);
+  ctx.fillStyle = "rgba(28,18,26,0.28)";
+  ctx.fillRect(x + size * 0.46, y + 10, 3, size * 0.34);
+  ctx.fillRect(x + size * 0.23, y + size * 0.55, 3, size * 0.3);
+  ctx.fillRect(x + size * 0.72, y + size * 0.55, 3, size * 0.3);
+  ctx.strokeStyle = "rgba(0,0,0,0.26)";
+  ctx.strokeRect(x + 0.5, y + 0.5, size - 1, size - 1);
   if ((row + col) % 5 === 0) {
     drawSparkle(x + size * 0.75, y + size * 0.25, size * 0.08, "#ffd36e", 0.6);
   }

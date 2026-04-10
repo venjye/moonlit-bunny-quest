@@ -1,15 +1,15 @@
 :root {
-  --bg-top: #233f3a;
-  --bg-bottom: #231a2f;
-  --panel: rgba(28, 34, 38, 0.86);
-  --panel-strong: rgba(35, 29, 43, 0.94);
-  --line: rgba(255, 245, 220, 0.2);
-  --text: #fff7e8;
-  --muted: rgba(255, 247, 232, 0.72);
-  --accent: #ffd36e;
-  --accent-alt: #79d7c2;
-  --danger: #ff8ba0;
-  --shadow: 0 18px 44px rgba(12, 9, 18, 0.34);
+  --bg-top: #2f5b50;
+  --bg-bottom: #241a2a;
+  --panel: rgba(28, 36, 34, 0.88);
+  --panel-strong: rgba(32, 29, 37, 0.95);
+  --line: rgba(255, 236, 190, 0.24);
+  --text: #fff9ec;
+  --muted: rgba(255, 249, 236, 0.74);
+  --accent: #f6c75f;
+  --accent-alt: #6ed0b6;
+  --danger: #ef7891;
+  --shadow: 0 18px 44px rgba(12, 9, 18, 0.36);
 }
 
 * {
@@ -25,12 +25,12 @@ body {
 }
 
 body {
-  font-family: "Noto Serif SC", serif;
+  font-family: "Noto Sans SC", sans-serif;
   color: var(--text);
   background:
-    linear-gradient(115deg, rgba(123, 215, 194, 0.2), transparent 34%),
-    radial-gradient(circle at 82% 14%, rgba(255, 139, 160, 0.24), transparent 26%),
-    radial-gradient(circle at 20% 8%, rgba(255, 211, 110, 0.18), transparent 28%),
+    linear-gradient(115deg, rgba(110, 208, 182, 0.22), transparent 34%),
+    radial-gradient(circle at 82% 14%, rgba(239, 120, 145, 0.24), transparent 26%),
+    radial-gradient(circle at 20% 8%, rgba(246, 199, 95, 0.2), transparent 28%),
     linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
 }
 
@@ -55,7 +55,7 @@ h3,
 .hud-button,
 .touch-button,
 .quick-button {
-  font-family: "Cormorant Garamond", serif;
+  font-family: "ZCOOL QingKe HuangYou", "Noto Sans SC", sans-serif;
 }
 
 .game-app {
@@ -111,8 +111,9 @@ h3,
 h1 {
   margin: 0;
   font-size: clamp(2.2rem, 4.4vw, 4rem);
-  line-height: 0.9;
-  letter-spacing: 0.08em;
+  line-height: 0.98;
+  letter-spacing: 0.04em;
+  text-shadow: 0 3px 0 rgba(24, 18, 24, 0.4), 0 12px 28px rgba(0, 0, 0, 0.32);
 }
 
 .hook,
@@ -181,7 +182,7 @@ h1 {
 
 .stat-card-wide strong {
   font-size: 1rem;
-  font-family: "Noto Serif SC", serif;
+  font-family: "Noto Sans SC", sans-serif;
 }
 
 .board-stage {
@@ -205,9 +206,9 @@ h1 {
   max-height: 860px;
   border-radius: 8px;
   overflow: hidden;
-  background: rgba(21, 18, 25, 0.82);
-  border: 2px solid rgba(255, 211, 110, 0.34);
-  box-shadow: 0 28px 72px rgba(9, 8, 15, 0.42), inset 0 0 0 1px rgba(255, 247, 232, 0.1);
+  background: rgba(18, 16, 22, 0.9);
+  border: 2px solid rgba(246, 199, 95, 0.5);
+  box-shadow: 0 28px 72px rgba(9, 8, 15, 0.44), inset 0 0 0 1px rgba(255, 249, 236, 0.12);
 }
 
 #game-canvas {
@@ -220,10 +221,10 @@ h1 {
 }
 
 .overlay-strip {
+  display: none;
   top: 14px;
   left: 14px;
   right: 14px;
-  display: flex;
   justify-content: space-between;
   gap: 10px;
   pointer-events: none;
