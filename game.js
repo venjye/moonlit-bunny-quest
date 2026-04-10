@@ -107,9 +107,8 @@ function syncBoardFrame() {
 
   if (isMobile) {
     const topSpace = Math.max(0, topRect.bottom + 8);
-    const bottomAnchor = touchRect.top > 0 ? touchRect.top : viewportHeight;
-    const quickbarHeight = quickbarRect.height > 0 ? quickbarRect.height + 12 : 0;
-    const bottomSpace = Math.max(topSpace + 120, bottomAnchor - quickbarHeight - 8);
+    const bottomAnchors = [touchRect.top, quickbarRect.top].filter((value) => value > 0);
+    const bottomSpace = Math.max(topSpace + 120, Math.min(...bottomAnchors, viewportHeight) - 12);
     const availableWidth = Math.max(180, viewportWidth - 20);
     const availableHeight = Math.max(180, bottomSpace - topSpace);
     const size = Math.floor(Math.min(availableWidth, availableHeight));

@@ -600,29 +600,7 @@ h1 {
   }
 
   .overlay-strip {
-    left: 8px;
-    right: 8px;
-    bottom: 8px;
-    top: auto;
-    align-items: flex-end;
-  }
-
-  .overlay-pill {
-    max-width: 58%;
-    padding: 7px 10px;
-    border-radius: 8px;
-  }
-
-  .overlay-pill span {
-    font-size: 0.62rem;
-  }
-
-  .overlay-pill strong {
-    font-size: 0.88rem;
-  }
-
-  .overlay-pill-right {
-    max-width: 42%;
+    display: none;
   }
 
   .mobile-quickbar,
@@ -763,7 +741,7 @@ h1 {
   .mobile-quickbar {
     left: 8px;
     right: 8px;
-    bottom: calc(env(safe-area-inset-bottom) + 208px);
+    bottom: calc(env(safe-area-inset-bottom) + 162px);
   }
 
   .touch-controls {
