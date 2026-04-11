@@ -5,6 +5,9 @@ const SAVE_KEY = "bunny_adventure_save_v1";
 const SAVE_SLOT_PREFIX = "bunny_adventure_save_slot_v2:";
 const LAST_SAVE_CODE_KEY = "bunny_adventure_last_save_code_v2";
 const LAST_SAVE_CODE_COOKIE = "bunnyAdventureLastSaveCode";
+const SAVE_DB_NAME = "bunny_adventure_saves";
+const SAVE_DB_VERSION = 1;
+const SAVE_DB_STORE = "slots";
 const TAU = Math.PI * 2;
 
 const ui = {
@@ -110,6 +113,10 @@ const state = {
 };
 
 let animationFrameId = 0;
+let saveDbPromise = null;
+let activeSaveCode = "";
+let autoSaveBusy = false;
+let autoSaveQueued = false;
 
 function shouldUseTouchLayout() {
   const viewportWidth = window.innerWidth;
@@ -202,6 +209,23 @@ function writeCookie(name, value) {
   document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}; max-age=31536000; path=/; SameSite=Lax`;
 }
 
+function safeLocalGet(key) {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return "";
+  }
+}
+
+function safeLocalSet(key, value) {
+  try {
+    localStorage.setItem(key, value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function normalizeSaveCode(value) {
   return value.trim().slice(0, 40);
 }
@@ -211,16 +235,135 @@ function saveSlotKey(code) {
 }
 
 function lastSaveCode() {
-  return localStorage.getItem(LAST_SAVE_CODE_KEY) || readCookie(LAST_SAVE_CODE_COOKIE);
+  return safeLocalGet(LAST_SAVE_CODE_KEY) || readCookie(LAST_SAVE_CODE_COOKIE);
 }
 
 function rememberSaveCode(code) {
-  localStorage.setItem(LAST_SAVE_CODE_KEY, code);
+  safeLocalSet(LAST_SAVE_CODE_KEY, code);
   writeCookie(LAST_SAVE_CODE_COOKIE, code);
+}
+
+function setActiveSaveCode(code) {
+  activeSaveCode = normalizeSaveCode(code);
+  if (activeSaveCode) {
+    ui.saveCodeInput.value = activeSaveCode;
+    rememberSaveCode(activeSaveCode);
+  }
 }
 
 function currentSaveCode() {
   return normalizeSaveCode(ui.saveCodeInput.value);
+}
+
+function askForSaveCode(actionLabel) {
+  const entered = window.prompt(`输入存档码来${actionLabel}。同一台设备会记住这个码。`, lastSaveCode() || "");
+  const code = normalizeSaveCode(entered || "");
+  if (!code) {
+    ui.statusLabel.textContent = "没有输入存档码。";
+    setSaveCodeStatus("输入任意字符串作为存档码，之后用同一个码继续。");
+    return "";
+  }
+  ui.saveCodeInput.value = code;
+  rememberSaveCode(code);
+  return code;
+}
+
+function openSaveDatabase() {
+  if (!("indexedDB" in window)) {
+    return Promise.reject(new Error("IndexedDB unavailable"));
+  }
+  if (!saveDbPromise) {
+    saveDbPromise = new Promise((resolve, reject) => {
+      const request = indexedDB.open(SAVE_DB_NAME, SAVE_DB_VERSION);
+      request.onupgradeneeded = () => {
+        request.result.createObjectStore(SAVE_DB_STORE);
+      };
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error || new Error("IndexedDB open failed"));
+      request.onblocked = () => reject(new Error("IndexedDB blocked"));
+    });
+  }
+  return saveDbPromise;
+}
+
+async function idbGet(key) {
+  const db = await openSaveDatabase();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(SAVE_DB_STORE, "readonly");
+    const request = transaction.objectStore(SAVE_DB_STORE).get(key);
+    request.onsuccess = () => resolve(request.result || "");
+    request.onerror = () => reject(request.error || new Error("IndexedDB read failed"));
+  });
+}
+
+async function idbSet(key, value) {
+  const db = await openSaveDatabase();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(SAVE_DB_STORE, "readwrite");
+    const request = transaction.objectStore(SAVE_DB_STORE).put(value, key);
+    request.onsuccess = () => resolve(true);
+    request.onerror = () => reject(request.error || new Error("IndexedDB write failed"));
+  });
+}
+
+async function readSaveSlot(code) {
+  const key = saveSlotKey(code);
+  const localRaw = safeLocalGet(key);
+  if (localRaw) {
+    return localRaw;
+  }
+  try {
+    return await idbGet(key);
+  } catch {
+    return "";
+  }
+}
+
+async function writeSaveSlot(code, snapshot) {
+  const key = saveSlotKey(code);
+  const wroteLocal = safeLocalSet(key, snapshot);
+  safeLocalSet(SAVE_KEY, snapshot);
+  let wroteDb = false;
+  try {
+    wroteDb = await idbSet(key, snapshot);
+    await idbSet(SAVE_KEY, snapshot);
+  } catch {
+    wroteDb = false;
+  }
+  return wroteLocal || wroteDb;
+}
+
+async function persistActiveSave(silent = true) {
+  if (!activeSaveCode) {
+    return false;
+  }
+  const saved = await writeSaveSlot(activeSaveCode, JSON.stringify(createSnapshot()));
+  if (!silent) {
+    ui.statusLabel.textContent = saved
+      ? `已存到“${activeSaveCode}”的 ${state.floorIndex + 1}F。`
+      : "浏览器阻止了本地存档。";
+  }
+  if (saved) {
+    setSaveCodeStatus(`已绑定“${activeSaveCode}”，进度会自动保存。`);
+  }
+  return saved;
+}
+
+function queueAutoSave() {
+  if (!activeSaveCode || autoSaveBusy) {
+    autoSaveQueued = Boolean(activeSaveCode && autoSaveBusy);
+    return;
+  }
+  autoSaveBusy = true;
+  persistActiveSave(true)
+    .catch(() => {})
+    .finally(() => {
+      autoSaveBusy = false;
+      if (autoSaveQueued) {
+        autoSaveQueued = false;
+        queueAutoSave();
+      }
+    });
 }
 
 function setSaveCodeStatus(text) {
@@ -233,6 +376,7 @@ function createSnapshot() {
     version: 2,
     savedAt: Date.now(),
     modeKey: state.modeKey,
+    saveCode: activeSaveCode,
     floorIndex: state.floorIndex,
     hero: state.hero,
     floors: state.floors,
@@ -251,6 +395,7 @@ function applySnapshot(snapshot) {
   state.ending = null;
   state.shopContext = null;
   state.feedbacks = [];
+  activeSaveCode = normalizeSaveCode(snapshot.saveCode || activeSaveCode);
   addLog(`读档回到 ${state.floorIndex + 1}F`);
   inspectAround();
   syncUi();
@@ -269,7 +414,7 @@ function readSnapshot(raw) {
   }
 }
 
-function initSaveCode() {
+async function initSaveCode() {
   const code = lastSaveCode();
   if (!code) {
     setSaveCodeStatus("输入一个存档码，点“继续”读取；没有存档时会从新局开始。");
@@ -277,7 +422,7 @@ function initSaveCode() {
   }
 
   ui.saveCodeInput.value = code;
-  if (localStorage.getItem(saveSlotKey(code))) {
+  if (await readSaveSlot(code)) {
     setSaveCodeStatus(`已记住存档码“${code}”，点“继续”回到上次进度。`);
     return;
   }
@@ -773,6 +918,7 @@ function buyShopOffer(index) {
   addLog(`在 ${state.shopContext.npc.title} 购买了 ${offer.label}`);
   ui.statusLabel.textContent = `${offer.label}，资源面板已更新。`;
   syncUi();
+  queueAutoSave();
 }
 
 function interactStory(tile) {
@@ -794,6 +940,7 @@ function nextFloor() {
     ui.statusLabel.textContent = "本轮已经通关。";
     addLog("本轮通关");
     syncUi();
+    queueAutoSave();
     return;
   }
   ensureFloors(state.modeKey, nextIndex);
@@ -805,6 +952,7 @@ function nextFloor() {
   ui.statusLabel.textContent = "新的楼层已经亮起。";
   inspectAround();
   syncUi();
+  queueAutoSave();
 }
 
 function moveHero(dx, dy) {
@@ -887,11 +1035,13 @@ function moveHero(dx, dy) {
       `止步于 ${state.floorIndex + 1}F。下次可以先绕开高伤怪，补够攻击或防御再回来清路。`,
     );
     syncUi();
+    queueAutoSave();
     return;
   }
 
   inspectAround();
   syncUi();
+  queueAutoSave();
 }
 
 function setMode(modeKey) {
@@ -932,50 +1082,61 @@ function closeEnding() {
   syncEndingPanel();
 }
 
-function saveRun() {
-  const code = currentSaveCode();
+async function saveRun() {
+  const code = currentSaveCode() || askForSaveCode("存档");
   if (!code) {
-    ui.statusLabel.textContent = "先输入一个存档码。";
-    setSaveCodeStatus("输入任意字符串作为你的存档码，下次输入同一个码就能继续。");
     ui.saveCodeInput.focus();
     return;
   }
 
+  setActiveSaveCode(code);
   const snapshot = JSON.stringify(createSnapshot());
-  localStorage.setItem(saveSlotKey(code), snapshot);
-  localStorage.setItem(SAVE_KEY, snapshot);
-  rememberSaveCode(code);
+  const saved = await writeSaveSlot(code, snapshot);
+  if (!saved) {
+    ui.statusLabel.textContent = "浏览器阻止了本地存档。";
+    setSaveCodeStatus("当前浏览器没有开放本地存储，换 Safari/Chrome 打开后再存。");
+    return;
+  }
   ui.statusLabel.textContent = `已存到“${code}”的 ${state.floorIndex + 1}F。`;
-  setSaveCodeStatus(`已记住“${code}”，同一台设备下次可直接继续。`);
+  setSaveCodeStatus(`已绑定“${code}”，同一台设备下次可继续，后续进度会自动保存。`);
   addLog(`已写入存档码 ${code}`);
 }
 
-function loadRun() {
-  const code = currentSaveCode();
+async function loadRun() {
+  const code = currentSaveCode() || askForSaveCode("继续");
   if (!code) {
-    ui.statusLabel.textContent = "先输入一个存档码。";
-    setSaveCodeStatus("输入任意字符串作为你的存档码；如果本机保存过这个码，会直接恢复进度。");
     ui.saveCodeInput.focus();
     return;
   }
 
-  const raw = localStorage.getItem(saveSlotKey(code));
+  const raw = await readSaveSlot(code);
   if (!raw) {
-    const legacyRaw = code === lastSaveCode() ? localStorage.getItem(SAVE_KEY) : "";
+    let legacyRaw = "";
+    if (code === lastSaveCode()) {
+      legacyRaw = safeLocalGet(SAVE_KEY);
+      if (!legacyRaw) {
+        try {
+          legacyRaw = await idbGet(SAVE_KEY);
+        } catch {
+          legacyRaw = "";
+        }
+      }
+    }
     if (legacyRaw) {
       const legacySnapshot = readSnapshot(legacyRaw);
       if (legacySnapshot) {
-        localStorage.setItem(saveSlotKey(code), JSON.stringify(legacySnapshot));
-        rememberSaveCode(code);
+        await writeSaveSlot(code, JSON.stringify(legacySnapshot));
+        setActiveSaveCode(code);
         applySnapshot(legacySnapshot);
         ui.statusLabel.textContent = `已把旧存档迁移到“${code}”。`;
-        setSaveCodeStatus(`已恢复“${code}”的旧存档。`);
+        setSaveCodeStatus(`已恢复“${code}”的旧存档，后续进度会自动保存。`);
         return;
       }
     }
-    rememberSaveCode(code);
+    setActiveSaveCode(code);
+    queueAutoSave();
     ui.statusLabel.textContent = `“${code}”还没有存档。`;
-    setSaveCodeStatus("没有找到这个存档码，本局开始后点“存档”就会绑定它。");
+    setSaveCodeStatus(`已新建“${code}”这个存档槽，后续进度会自动保存。`);
     return;
   }
 
@@ -986,10 +1147,10 @@ function loadRun() {
     return;
   }
 
-  rememberSaveCode(code);
+  setActiveSaveCode(code);
   applySnapshot(snapshot);
   ui.statusLabel.textContent = `已读取“${code}”的本地存档。`;
-  setSaveCodeStatus(`当前存档码：${code}`);
+  setSaveCodeStatus(`当前存档码：${code}，后续进度会自动保存。`);
 }
 
 function toggleSheet(targetId) {
@@ -1248,14 +1409,14 @@ function drawEnemyStats(enemy, preview, x, y, size) {
   const fontSize = Math.max(7, Math.floor(size * 0.15));
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.font = `900 ${fontSize}px "Noto Sans SC", sans-serif`;
+  ctx.font = `900 ${fontSize}px "LXGW WenKai Screen", "Kaiti SC", sans-serif`;
   ctx.fillStyle = risky ? "rgba(79,18,29,0.92)" : "rgba(18,38,31,0.9)";
   ctx.fillRect(x + size * 0.06, y + size * 0.03, size * 0.88, size * 0.19);
   ctx.fillStyle = risky ? "#ffd1dc" : "#bff8dc";
   ctx.fillText(damageLabel, x + size * 0.5, y + size * 0.125);
 
   const rows = size >= 40 ? [`H${enemy.hp}`, `A${enemy.atk}`, `D${enemy.def}`] : [`H${enemy.hp}`, `攻${enemy.atk}`];
-  ctx.font = `900 ${Math.max(7, Math.floor(size * 0.13))}px "Noto Sans SC", sans-serif`;
+  ctx.font = `900 ${Math.max(7, Math.floor(size * 0.13))}px "LXGW WenKai Screen", "Kaiti SC", sans-serif`;
   ctx.fillStyle = "rgba(13,15,14,0.82)";
   ctx.fillRect(x + size * 0.08, y + size * 0.64, size * 0.84, size * 0.32);
   ctx.fillStyle = "#fff1b8";
@@ -1400,7 +1561,7 @@ function drawFeedbacks(metrics, time) {
 
     ctx.save();
     ctx.globalAlpha = 1 - progress * 0.82;
-    ctx.font = `700 ${Math.max(12, Math.floor(metrics.tileSize * 0.24))}px "Noto Sans SC", sans-serif`;
+    ctx.font = `700 ${Math.max(12, Math.floor(metrics.tileSize * 0.24))}px "LXGW WenKai Screen", "Kaiti SC", sans-serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.lineWidth = 4;
@@ -1518,14 +1679,15 @@ function bindEvents() {
       loadRun();
     }
   });
-  ui.saveCodeInput.addEventListener("change", () => {
+  ui.saveCodeInput.addEventListener("change", async () => {
     const code = currentSaveCode();
     if (!code) {
       setSaveCodeStatus("输入一个存档码，点“继续”读取；没有存档时会从新局开始。");
       return;
     }
+    rememberSaveCode(code);
     setSaveCodeStatus(
-      localStorage.getItem(saveSlotKey(code))
+      (await readSaveSlot(code))
         ? `找到“${code}”的本地存档，点“继续”恢复。`
         : `“${code}”还没有本地存档，点“存档”会创建。`,
     );
@@ -1551,6 +1713,14 @@ function bindEvents() {
         inspectAround();
         return;
       }
+      if (key === "save") {
+        saveRun();
+        return;
+      }
+      if (key === "load") {
+        loadRun();
+        return;
+      }
       if (key === "restart") {
         resetRun();
         render();
@@ -1574,7 +1744,7 @@ async function boot() {
   ensureFloors(state.modeKey, 0);
   resetRun();
   startRenderLoop();
-  initSaveCode();
+  await initSaveCode();
 }
 
 boot().catch((error) => {
