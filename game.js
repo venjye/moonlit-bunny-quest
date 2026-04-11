@@ -120,7 +120,11 @@ function shouldUseTouchLayout() {
     navigator.maxTouchPoints > 0 ||
     "ontouchstart" in window ||
     /ipad|iphone|android|mobile/i.test(userAgent);
-  const tabletViewport = viewportWidth <= 1180 && viewportHeight <= 1400;
+  const tabletViewport =
+    viewportWidth <= 1366 &&
+    viewportHeight >= 900 &&
+    viewportHeight <= 1400 &&
+    Math.min(viewportWidth, viewportHeight) <= 1180;
   return viewportWidth <= 720 || ((coarsePointer || touchCapable || tabletViewport) && viewportWidth <= 1366);
 }
 
@@ -1468,6 +1472,7 @@ function startRenderLoop() {
 
 function bindEvents() {
   window.addEventListener("resize", render);
+  window.visualViewport?.addEventListener("resize", render);
 
   document.addEventListener("keydown", (event) => {
     const key = event.key.toLowerCase();
