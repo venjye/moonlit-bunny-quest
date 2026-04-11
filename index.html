@@ -11,7 +11,7 @@
       rel="icon"
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23233f3a'/%3E%3Cellipse cx='24' cy='24' rx='8' ry='18' fill='%23fff7e8'/%3E%3Cellipse cx='40' cy='24' rx='8' ry='18' fill='%23fff7e8'/%3E%3Ccircle cx='32' cy='38' r='16' fill='%23fff7e8'/%3E%3Ccircle cx='26' cy='36' r='3' fill='%23231a2f'/%3E%3Ccircle cx='38' cy='36' r='3' fill='%23231a2f'/%3E%3Cpath d='M29 43h6' stroke='%23231a2f' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E"
     />
-    <link rel="stylesheet" href="./styles.css?v=20260411-save-font-v2" />
+    <link rel="stylesheet" href="./styles.css?v=20260411-save-font-v3" />
   </head>
   <body>
     <main class="game-app">
@@ -114,10 +114,10 @@
                 inputmode="text"
                 maxlength="40"
                 autocomplete="nickname"
-                placeholder="输入任意字符串继续或存档"
+                placeholder="输入字符串自动建档"
               />
             </label>
-            <p class="save-code-hint" id="save-code-hint">同一台设备会记住上次使用的存档码。</p>
+            <p class="save-code-hint" id="save-code-hint">输入新存档码会立即建档；已有存档码点“继续”读取。</p>
             <div class="guide-actions">
               <button class="hud-button" type="button" id="inspect-button">调查前方</button>
               <button class="hud-button" type="button" id="save-button">存档</button>
@@ -176,6 +176,6 @@
       </section>
     </main>
 
-    <script type="module" src="./game.js?v=20260411-save-font-v2"></script>
+    <script type="module" src="./game.js?v=20260411-save-font-v3"></script>
   </body>
 </html>

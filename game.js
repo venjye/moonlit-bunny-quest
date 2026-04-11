@@ -117,6 +117,7 @@ let saveDbPromise = null;
 let activeSaveCode = "";
 let autoSaveBusy = false;
 let autoSaveQueued = false;
+let saveCodeInputTimer = 0;
 
 function shouldUseTouchLayout() {
   const viewportWidth = window.innerWidth;
@@ -364,6 +365,52 @@ function queueAutoSave() {
         queueAutoSave();
       }
     });
+}
+
+async function bindSaveCodeFromInput(createIfMissing = true) {
+  const code = currentSaveCode();
+  if (!code) {
+    activeSaveCode = "";
+    setSaveCodeStatus("输入一个存档码会立即创建本地存档；已有存档点“继续”读取。");
+    return false;
+  }
+
+  const raw = await readSaveSlot(code);
+  if (currentSaveCode() !== code) {
+    return false;
+  }
+
+  rememberSaveCode(code);
+  if (raw) {
+    const activeText = activeSaveCode === code ? "当前存档码" : "找到本地存档";
+    setSaveCodeStatus(`${activeText}“${code}”，点“继续”恢复；点“存档”会覆盖为当前进度。`);
+    return true;
+  }
+
+  if (!createIfMissing) {
+    setSaveCodeStatus(`“${code}”还没有本地存档，点“存档”或继续移动会创建。`);
+    return false;
+  }
+
+  setActiveSaveCode(code);
+  const saved = await persistActiveSave(true);
+  if (saved) {
+    ui.statusLabel.textContent = `已用“${code}”创建本地存档。`;
+    setSaveCodeStatus(`已新建“${code}”这个存档槽，后续进度会自动保存。`);
+  } else {
+    ui.statusLabel.textContent = "浏览器阻止了本地存档。";
+    setSaveCodeStatus("当前浏览器没有开放本地存储，换 Safari/Chrome 打开后再存。");
+  }
+  return saved;
+}
+
+function scheduleSaveCodeBind() {
+  window.clearTimeout(saveCodeInputTimer);
+  saveCodeInputTimer = window.setTimeout(() => {
+    bindSaveCodeFromInput(true).catch(() => {
+      setSaveCodeStatus("存档码绑定失败，点“存档”再试一次。");
+    });
+  }, 450);
 }
 
 function setSaveCodeStatus(text) {
@@ -1409,14 +1456,14 @@ function drawEnemyStats(enemy, preview, x, y, size) {
   const fontSize = Math.max(7, Math.floor(size * 0.15));
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.font = `900 ${fontSize}px "LXGW WenKai Screen", "Kaiti SC", sans-serif`;
+  ctx.font = `900 ${fontSize}px "Hannotate SC", "HanziPen SC", "Kaiti SC", "PingFang SC", sans-serif`;
   ctx.fillStyle = risky ? "rgba(79,18,29,0.92)" : "rgba(18,38,31,0.9)";
   ctx.fillRect(x + size * 0.06, y + size * 0.03, size * 0.88, size * 0.19);
   ctx.fillStyle = risky ? "#ffd1dc" : "#bff8dc";
   ctx.fillText(damageLabel, x + size * 0.5, y + size * 0.125);
 
   const rows = size >= 40 ? [`H${enemy.hp}`, `A${enemy.atk}`, `D${enemy.def}`] : [`H${enemy.hp}`, `攻${enemy.atk}`];
-  ctx.font = `900 ${Math.max(7, Math.floor(size * 0.13))}px "LXGW WenKai Screen", "Kaiti SC", sans-serif`;
+  ctx.font = `900 ${Math.max(7, Math.floor(size * 0.13))}px "Hannotate SC", "HanziPen SC", "Kaiti SC", "PingFang SC", sans-serif`;
   ctx.fillStyle = "rgba(13,15,14,0.82)";
   ctx.fillRect(x + size * 0.08, y + size * 0.64, size * 0.84, size * 0.32);
   ctx.fillStyle = "#fff1b8";
@@ -1561,7 +1608,7 @@ function drawFeedbacks(metrics, time) {
 
     ctx.save();
     ctx.globalAlpha = 1 - progress * 0.82;
-    ctx.font = `700 ${Math.max(12, Math.floor(metrics.tileSize * 0.24))}px "LXGW WenKai Screen", "Kaiti SC", sans-serif`;
+    ctx.font = `700 ${Math.max(12, Math.floor(metrics.tileSize * 0.24))}px "Hannotate SC", "HanziPen SC", "Kaiti SC", "PingFang SC", sans-serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.lineWidth = 4;
@@ -1679,18 +1726,12 @@ function bindEvents() {
       loadRun();
     }
   });
-  ui.saveCodeInput.addEventListener("change", async () => {
-    const code = currentSaveCode();
-    if (!code) {
-      setSaveCodeStatus("输入一个存档码，点“继续”读取；没有存档时会从新局开始。");
-      return;
-    }
-    rememberSaveCode(code);
-    setSaveCodeStatus(
-      (await readSaveSlot(code))
-        ? `找到“${code}”的本地存档，点“继续”恢复。`
-        : `“${code}”还没有本地存档，点“存档”会创建。`,
-    );
+  ui.saveCodeInput.addEventListener("input", scheduleSaveCodeBind);
+  ui.saveCodeInput.addEventListener("change", () => {
+    window.clearTimeout(saveCodeInputTimer);
+    bindSaveCodeFromInput(true).catch(() => {
+      setSaveCodeStatus("存档码绑定失败，点“存档”再试一次。");
+    });
   });
   ui.shopCloseButton.addEventListener("click", closeShop);
   ui.shopOffers.addEventListener("click", (event) => {

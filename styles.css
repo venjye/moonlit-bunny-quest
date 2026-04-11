@@ -1,4 +1,4 @@
-@import url("https://s4.zstatic.net/ajax/libs/lxgw-wenkai-screen-webfont/1.7.0/lxgwwenkaiscreen.css");
+@import url("https://cdn.bootcdn.net/ajax/libs/lxgw-wenkai-screen-webfont/1.7.0/lxgwwenkaiscreen.css");
 
 :root {
   --bg-top: #2b3e36;
@@ -12,6 +12,8 @@
   --accent-alt: #70d0a4;
   --danger: #e75e73;
   --shadow: 0 16px 0 rgba(0, 0, 0, 0.22), 0 26px 56px rgba(0, 0, 0, 0.38);
+  --font-body: "LXGW WenKai Screen", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  --font-display: "Hannotate SC", "HanziPen SC", "LXGW WenKai Screen", "Kaiti SC", "STKaiti", "KaiTi", "Songti SC", serif;
 }
 
 * {
@@ -27,7 +29,7 @@ body {
 }
 
 body {
-  font-family: "LXGW WenKai Screen", "Hannotate SC", "Kaiti SC", "Songti SC", serif;
+  font-family: var(--font-body);
   color: var(--text);
   background:
     linear-gradient(90deg, rgba(0, 0, 0, 0.16) 1px, transparent 1px),
@@ -62,7 +64,7 @@ h3,
 .hud-button,
 .touch-button,
 .quick-button {
-  font-family: "LXGW WenKai Screen", "Hannotate SC", "Kaiti SC", "Songti SC", serif;
+  font-family: var(--font-display);
 }
 
 .game-app {
@@ -133,7 +135,7 @@ h1 {
 .hook {
   margin: 8px 0 0;
   font-size: 0.95rem;
-  font-family: "LXGW WenKai Screen", "Kaiti SC", serif;
+  font-family: var(--font-display);
   color: var(--muted);
 }
 
@@ -192,7 +194,7 @@ h1 {
 
 .stat-card-wide strong {
   font-size: 1rem;
-  font-family: "LXGW WenKai Screen", "Kaiti SC", serif;
+  font-family: var(--font-display);
 }
 
 .board-stage {
@@ -357,7 +359,7 @@ h1 {
   background: rgba(0, 0, 0, 0.28);
   border: 1px solid rgba(244, 210, 132, 0.34);
   outline: 0;
-  font-family: "LXGW WenKai Screen", "Kaiti SC", serif;
+  font-family: var(--font-body);
 }
 
 .save-code-field input:focus {
@@ -424,7 +426,7 @@ h1 {
 .hero-detail-list dd {
   margin-top: 2px;
   font-weight: 900;
-  font-family: "LXGW WenKai Screen", "Kaiti SC", serif;
+  font-family: var(--font-display);
 }
 
 .handbook-list {
@@ -576,7 +578,7 @@ h1 {
 
 .quick-stat-keys strong {
   font-size: 0.82rem;
-  font-family: "LXGW WenKai Screen", "Kaiti SC", serif;
+  font-family: var(--font-display);
 }
 
 .touch-controls {
