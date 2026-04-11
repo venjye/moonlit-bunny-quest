@@ -113,10 +113,10 @@ function syncBoardFrame() {
   const isMobile = viewportWidth <= 720;
 
   if (isMobile) {
-    const topSpace = Math.max(0, topRect.bottom + 8);
+    const topSpace = Math.max(0, topRect.bottom + 10);
     const bottomAnchors = [touchRect.top, quickbarRect.top].filter((value) => value > 0);
-    const bottomSpace = Math.max(topSpace + 120, Math.min(...bottomAnchors, viewportHeight) - 12);
-    const availableWidth = Math.max(180, viewportWidth - 20);
+    const bottomSpace = Math.max(topSpace + 220, Math.min(...bottomAnchors, viewportHeight) - 10);
+    const availableWidth = Math.max(220, viewportWidth - 16);
     const availableHeight = Math.max(180, bottomSpace - topSpace);
     const size = Math.floor(Math.min(availableWidth, availableHeight));
     boardWrap.style.width = `${size}px`;
@@ -239,64 +239,56 @@ function makeEnemy(index, random, isBoss = false) {
 
 const MAGIC_TOWER_LAYOUTS = [
   [
-    "WWWWWWWWWWWWW",
-    "W...YW..E..UW",
-    "W.p.yW.WWW.WW",
-    "W...EW.Wg..aW",
-    "WWW.WWW.W.WWW",
-    "W..E...W...bW",
-    "W.WWWWWBWWW.W",
-    "W.d..EW...E.W",
-    "WWWW.W.WWW.WW",
-    "W..y.Y...R.rW",
-    "W.WWWWWWWWW.W",
-    "WS..p..T..g.W",
-    "WWWWWWWWWWWWW",
+    "WWWWWWWWWWW",
+    "W...W..E.UW",
+    "W.pYW.WWWWW",
+    "W..EW...g.W",
+    "WWW.W.WWW.W",
+    "WS..W.N.W.W",
+    "WWW.WBWWW.W",
+    "WyE.W...EaW",
+    "W.WWWRWWW.W",
+    "W..d..T..rW",
+    "WWWWWWWWWWW",
   ],
   [
-    "WWWWWWWWWWWWW",
-    "WU..E..R..r.W",
-    "WW.WWW.WWW.WW",
-    "Wa..W..E..p.W",
-    "W.WYWW.W.WW.W",
-    "Wy..W.N.W..gW",
-    "WWW.WWWBWWW.W",
-    "W..E..b..E..W",
-    "W.WWWWWWW.WWW",
-    "Wp..Y..d..E.W",
-    "W.W.WWW.WWW.W",
-    "WSW.g..T..y.W",
-    "WWWWWWWWWWWWW",
+    "WWWWWWWWWWW",
+    "WU..E.W.r.W",
+    "WW.WWWWRW.W",
+    "Wa..W...p.W",
+    "W.WYWWWWW.W",
+    "Wy..W.N...W",
+    "WWW.WWWBWWW",
+    "W..E..b..EW",
+    "W.WWWWWWW.W",
+    "WS..g.T.d.W",
+    "WWWWWWWWWWW",
   ],
   [
-    "WWWWWWWWWWWWW",
-    "W..g..X..R.UW",
-    "W.WWWWWYWWWWW",
-    "Wy..E..p..a.W",
-    "WWW.WWWWW.WWW",
-    "W..B..b..E..W",
-    "W.WWW.WWWWW.W",
-    "W..p..N..d..W",
-    "W.WWWWW.WWW.W",
-    "W..E..Y..r..W",
-    "WWW.WWWRWWW.W",
-    "WS..y..T..E.W",
-    "WWWWWWWWWWWWW",
+    "WWWWWWWWWWW",
+    "W..g.X.R.UW",
+    "W.WWWYWWWWW",
+    "Wy..E..p.aW",
+    "WWW.WWWWW.W",
+    "WS.B.b.E..W",
+    "WWW.W.WWWWW",
+    "W..pW.N.d.W",
+    "W.WWWWW.W.W",
+    "W..E.Y.rT.W",
+    "WWWWWWWWWWW",
   ],
   [
-    "WWWWWWWWWWWWW",
-    "W..E..Y..X.UW",
-    "W.WWWWWWW.WWW",
-    "W.p..yW..g..W",
-    "WWW.W.W.WWW.W",
-    "W..E.W.W..b.W",
-    "W.WWWBWWWWW.W",
-    "Wa..W.N.W..EW",
-    "W.W.WWW.WWW.W",
-    "W..d..Y..r..W",
-    "WWWWWWW.WWW.W",
-    "WS..p..T..g.W",
-    "WWWWWWWWWWWWW",
+    "WWWWWWWWWWW",
+    "W..E.Y.X.UW",
+    "W.WWWWWWW.W",
+    "W.p.yW.g..W",
+    "WWW.W.W.WWW",
+    "WS.EW.W.b.W",
+    "WWW.B.WWW.W",
+    "Wa..W.N..EW",
+    "W.W.WWWWW.W",
+    "W..d.Y.rT.W",
+    "WWWWWWWWWWW",
   ],
 ];
 
@@ -684,6 +676,7 @@ function moveHero(dx, dy) {
   if (state.ending) {
     return;
   }
+  closeSheetsOnMobile();
   if (state.shopContext) {
     closeShop();
   }
@@ -858,6 +851,13 @@ function toggleSheet(targetId) {
   if (shouldOpen) {
     target.classList.add("is-open");
   }
+}
+
+function closeSheetsOnMobile() {
+  if (window.innerWidth > 720) {
+    return;
+  }
+  Object.values(ui.sheets).forEach((sheet) => sheet.classList.remove("is-open"));
 }
 
 function fitCanvas() {
@@ -1087,15 +1087,21 @@ function drawEnemy(tile, x, y, size, time) {
   ctx.closePath();
   ctx.fill();
   const preview = combatPreview(state.hero, tile.enemy);
-  const label = preview.damage === Infinity ? "破防-" : String(preview.damage);
-  const risky = !preview.canWin || preview.damage > state.hero.hp * 0.38;
-  ctx.font = `${Math.max(9, Math.floor(size * 0.2))}px "Noto Sans SC", sans-serif`;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillStyle = risky ? "#4f121d" : "#12261f";
-  ctx.fillRect(x + size * 0.08, y + size * 0.04, size * 0.84, size * 0.22);
-  ctx.fillStyle = risky ? "#ffd1dc" : "#bff8dc";
-  ctx.fillText(label, cx, y + size * 0.15);
+  if (size >= 42) {
+    const label = preview.damage === Infinity ? "破防-" : String(preview.damage);
+    const risky = !preview.canWin || preview.damage > state.hero.hp * 0.38;
+    ctx.font = `${Math.max(9, Math.floor(size * 0.18))}px "Noto Sans SC", sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = risky ? "#4f121d" : "#12261f";
+    ctx.fillRect(x + size * 0.1, y + size * 0.04, size * 0.8, size * 0.2);
+    ctx.fillStyle = risky ? "#ffd1dc" : "#bff8dc";
+    ctx.fillText(label, cx, y + size * 0.14);
+  } else {
+    const risky = !preview.canWin || preview.damage > state.hero.hp * 0.38;
+    ctx.fillStyle = risky ? "#ff8ba0" : "#70d0a4";
+    ctx.fillRect(x + size * 0.68, y + size * 0.12, size * 0.16, size * 0.16);
+  }
   ctx.restore();
 }
 

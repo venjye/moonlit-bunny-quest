@@ -25,7 +25,7 @@ body {
 }
 
 body {
-  font-family: "Noto Sans SC", "Noto Serif SC", sans-serif;
+  font-family: "Noto Serif SC", "Noto Sans SC", serif;
   color: var(--text);
   background:
     linear-gradient(90deg, rgba(0, 0, 0, 0.16) 1px, transparent 1px),
@@ -126,7 +126,7 @@ h1 {
 .hook {
   margin: 8px 0 0;
   font-size: 0.95rem;
-  font-family: "Noto Sans SC", sans-serif;
+  font-family: "Noto Serif SC", serif;
   color: var(--muted);
 }
 
@@ -185,7 +185,7 @@ h1 {
 
 .stat-card-wide strong {
   font-size: 1rem;
-  font-family: "Noto Sans SC", sans-serif;
+  font-family: "Noto Serif SC", serif;
 }
 
 .board-stage {
@@ -719,10 +719,21 @@ h1 {
   .info-drawer {
     left: 10px;
     right: 10px;
-    bottom: calc(env(safe-area-inset-bottom) + 136px);
+    bottom: calc(env(safe-area-inset-bottom) + 224px);
     width: auto;
-    max-height: min(46dvh, 420px);
+    max-height: min(26dvh, 220px);
     border-radius: 8px;
+    padding: 12px;
+    background: rgba(16, 17, 16, 0.96);
+  }
+
+  .drawer-card {
+    padding: 10px 12px;
+  }
+
+  .drawer-card p,
+  .event-log {
+    line-height: 1.45;
   }
 
   .ending-card,

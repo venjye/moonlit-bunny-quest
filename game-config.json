@@ -4,9 +4,9 @@
   "hook": "小兔露娜要穿过月塔、集齐月铃碎片，把被夜雾偷走的归家路重新点亮。",
   "seed": 314159,
   "grid": {
-    "cols": 13,
-    "rows": 13,
-    "tileSize": 48
+    "cols": 11,
+    "rows": 11,
+    "tileSize": 56
   },
   "player": {
     "name": "露娜",
