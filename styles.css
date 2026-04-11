@@ -355,6 +355,37 @@ h1 {
   color: var(--muted);
 }
 
+.hero-detail-list {
+  margin: 12px 0 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.hero-detail-list div {
+  min-width: 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(244, 210, 132, 0.18);
+}
+
+.hero-detail-list dt,
+.hero-detail-list dd {
+  margin: 0;
+}
+
+.hero-detail-list dt {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.hero-detail-list dd {
+  margin-top: 2px;
+  font-weight: 900;
+  font-family: "Noto Serif SC", serif;
+}
+
 .handbook-list {
   margin: 10px 0 0;
   padding: 0;
@@ -500,6 +531,11 @@ h1 {
 .quick-stat strong {
   display: block;
   font-size: 0.96rem;
+}
+
+.quick-stat-keys strong {
+  font-size: 0.82rem;
+  font-family: "Noto Serif SC", serif;
 }
 
 .touch-controls {
@@ -661,15 +697,18 @@ h1 {
     left: 10px;
     right: 10px;
     bottom: calc(env(safe-area-inset-bottom) + 144px);
-    justify-content: space-between;
-    flex-wrap: nowrap;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 6px;
   }
 
   .quick-button,
   .quick-stat {
-    flex: 1 1 0;
     min-width: 0;
+  }
+
+  .quick-stat-keys {
+    grid-column: span 2;
   }
 
   .quick-button {
@@ -785,7 +824,7 @@ h1 {
   .quick-button,
   .sheet-toggle,
   .hud-button {
-    padding: 9px 14px;
+    padding: 9px 12px;
   }
 
   .board-stage {

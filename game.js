@@ -16,12 +16,15 @@ const ui = {
   mobileHpLabel: document.querySelector("#mobile-hp-label"),
   mobileAtkLabel: document.querySelector("#mobile-atk-label"),
   mobileDefLabel: document.querySelector("#mobile-def-label"),
+  mobileGoldLabel: document.querySelector("#mobile-gold-label"),
+  mobileKeysLabel: document.querySelector("#mobile-keys-label"),
   chapterLabel: document.querySelector("#chapter-label"),
   rankLabel: document.querySelector("#rank-label"),
   statusLabel: document.querySelector("#status-label"),
   objectiveText: document.querySelector("#objective-text"),
   storybeatText: document.querySelector("#storybeat-text"),
   previewText: document.querySelector("#preview-text"),
+  heroDetailList: document.querySelector("#hero-detail-list"),
   handbookList: document.querySelector("#handbook-list"),
   eventLog: document.querySelector("#event-log"),
   progressBar: document.querySelector("#progress-bar"),
@@ -423,6 +426,12 @@ function itemLabel(item) {
   return ITEM_DEFS[item]?.label || item;
 }
 
+function keysText(keys, compact = false) {
+  return compact
+    ? `黄${keys.yellow} 蓝${keys.blue} 红${keys.red}`
+    : `黄钥 ${keys.yellow} / 蓝钥 ${keys.blue} / 红钥 ${keys.red}`;
+}
+
 function applyItem(tile) {
   switch (tile.item) {
     case "yellowKey":
@@ -463,10 +472,12 @@ function syncUi() {
   ui.atkLabel.textContent = String(state.hero.atk);
   ui.defLabel.textContent = String(state.hero.def);
   ui.goldLabel.textContent = String(state.hero.gold);
-  ui.keysLabel.textContent = `黄${state.hero.keys.yellow} 蓝${state.hero.keys.blue} 红${state.hero.keys.red}`;
+  ui.keysLabel.textContent = keysText(state.hero.keys, true);
   ui.mobileHpLabel.textContent = String(state.hero.hp);
   ui.mobileAtkLabel.textContent = String(state.hero.atk);
   ui.mobileDefLabel.textContent = String(state.hero.def);
+  ui.mobileGoldLabel.textContent = String(state.hero.gold);
+  ui.mobileKeysLabel.textContent = keysText(state.hero.keys, true);
   ui.chapterLabel.textContent = floor.chapter;
   ui.rankLabel.textContent = heroRank();
   ui.objectiveText.textContent = floor.objective;
@@ -476,6 +487,13 @@ function syncUi() {
     state.modeKey === "endless"
       ? `已深入 ${state.floorIndex + 1} 层`
       : `${state.config.modes[state.modeKey].label} ${state.floorIndex + 1}/${totalFloors()}`;
+  ui.heroDetailList.innerHTML = `
+    <div><dt>生命</dt><dd>${state.hero.hp}</dd></div>
+    <div><dt>攻击</dt><dd>${state.hero.atk}</dd></div>
+    <div><dt>防御</dt><dd>${state.hero.def}</dd></div>
+    <div><dt>金币</dt><dd>${state.hero.gold}</dd></div>
+    <div><dt>钥匙</dt><dd>${keysText(state.hero.keys, true)}</dd></div>
+  `;
   ui.modeButtons.forEach((button) => {
     button.classList.toggle("is-active", button.dataset.mode === state.modeKey);
   });
@@ -1087,22 +1105,31 @@ function drawEnemy(tile, x, y, size, time) {
   ctx.closePath();
   ctx.fill();
   const preview = combatPreview(state.hero, tile.enemy);
-  if (size >= 42) {
-    const label = preview.damage === Infinity ? "破防-" : String(preview.damage);
-    const risky = !preview.canWin || preview.damage > state.hero.hp * 0.38;
-    ctx.font = `${Math.max(9, Math.floor(size * 0.18))}px "Noto Sans SC", sans-serif`;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillStyle = risky ? "#4f121d" : "#12261f";
-    ctx.fillRect(x + size * 0.1, y + size * 0.04, size * 0.8, size * 0.2);
-    ctx.fillStyle = risky ? "#ffd1dc" : "#bff8dc";
-    ctx.fillText(label, cx, y + size * 0.14);
-  } else {
-    const risky = !preview.canWin || preview.damage > state.hero.hp * 0.38;
-    ctx.fillStyle = risky ? "#ff8ba0" : "#70d0a4";
-    ctx.fillRect(x + size * 0.68, y + size * 0.12, size * 0.16, size * 0.16);
-  }
+  drawEnemyStats(tile.enemy, preview, x, y, size);
   ctx.restore();
+}
+
+function drawEnemyStats(enemy, preview, x, y, size) {
+  const risky = !preview.canWin || preview.damage > state.hero.hp * 0.38;
+  const damageLabel = preview.damage === Infinity ? "破防-" : `损${preview.damage}`;
+  const fontSize = Math.max(7, Math.floor(size * 0.15));
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = `900 ${fontSize}px "Noto Sans SC", sans-serif`;
+  ctx.fillStyle = risky ? "rgba(79,18,29,0.92)" : "rgba(18,38,31,0.9)";
+  ctx.fillRect(x + size * 0.06, y + size * 0.03, size * 0.88, size * 0.19);
+  ctx.fillStyle = risky ? "#ffd1dc" : "#bff8dc";
+  ctx.fillText(damageLabel, x + size * 0.5, y + size * 0.125);
+
+  const rows = size >= 40 ? [`H${enemy.hp}`, `A${enemy.atk}`, `D${enemy.def}`] : [`H${enemy.hp}`, `攻${enemy.atk}`];
+  ctx.font = `900 ${Math.max(7, Math.floor(size * 0.13))}px "Noto Sans SC", sans-serif`;
+  ctx.fillStyle = "rgba(13,15,14,0.82)";
+  ctx.fillRect(x + size * 0.08, y + size * 0.64, size * 0.84, size * 0.32);
+  ctx.fillStyle = "#fff1b8";
+  rows.forEach((line, index) => {
+    const lineY = y + size * (rows.length === 3 ? 0.7 + index * 0.105 : 0.74 + index * 0.13);
+    ctx.fillText(line, x + size * 0.5, lineY);
+  });
 }
 
 function drawNpc(x, y, size) {
