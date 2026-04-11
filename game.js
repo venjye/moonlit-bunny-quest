@@ -113,9 +113,15 @@ let animationFrameId = 0;
 
 function shouldUseTouchLayout() {
   const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+  const userAgent = navigator.userAgent || "";
   const coarsePointer = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
-  const touchCapable = navigator.maxTouchPoints > 0;
-  return viewportWidth <= 720 || ((coarsePointer || touchCapable) && viewportWidth <= 1366);
+  const touchCapable =
+    navigator.maxTouchPoints > 0 ||
+    "ontouchstart" in window ||
+    /ipad|iphone|android|mobile/i.test(userAgent);
+  const tabletViewport = viewportWidth <= 1180 && viewportHeight <= 1400;
+  return viewportWidth <= 720 || ((coarsePointer || touchCapable || tabletViewport) && viewportWidth <= 1366);
 }
 
 function syncBoardFrame() {
