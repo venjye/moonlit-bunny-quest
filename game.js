@@ -111,16 +111,24 @@ const state = {
 
 let animationFrameId = 0;
 
+function shouldUseTouchLayout() {
+  const viewportWidth = window.innerWidth;
+  const coarsePointer = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+  const touchCapable = navigator.maxTouchPoints > 0;
+  return viewportWidth <= 720 || ((coarsePointer || touchCapable) && viewportWidth <= 1366);
+}
+
 function syncBoardFrame() {
   const viewportWidth = window.innerWidth;
   const viewportHeight = window.innerHeight;
+  const isTouchLayout = shouldUseTouchLayout();
+  document.body.classList.toggle("is-touch-layout", isTouchLayout);
   const topRect = document.querySelector(".floating-top").getBoundingClientRect();
   const quickbarRect = document.querySelector(".mobile-quickbar").getBoundingClientRect();
   const touchRect = document.querySelector(".touch-controls").getBoundingClientRect();
   const statsRect = document.querySelector(".floating-stats").getBoundingClientRect();
-  const isMobile = viewportWidth <= 720;
 
-  if (isMobile) {
+  if (isTouchLayout) {
     const topSpace = Math.max(0, topRect.bottom + 10);
     const bottomAnchors = [touchRect.top, quickbarRect.top].filter((value) => value > 0);
     const bottomSpace = Math.max(topSpace + 220, Math.min(...bottomAnchors, viewportHeight) - 10);

@@ -639,6 +639,74 @@ h1 {
   position: static;
 }
 
+body.is-touch-layout .hook,
+body.is-touch-layout .floating-stats {
+  display: none;
+}
+
+body.is-touch-layout .board-stage {
+  inset: 0;
+  display: block;
+  padding: 0;
+}
+
+body.is-touch-layout .board-wrap {
+  width: auto;
+  height: auto;
+  border-radius: 8px;
+  max-width: none;
+  max-height: none;
+}
+
+body.is-touch-layout .overlay-strip {
+  display: none;
+}
+
+body.is-touch-layout .mobile-quickbar,
+body.is-touch-layout .touch-controls {
+  display: flex;
+}
+
+body.is-touch-layout .mobile-quickbar {
+  left: 12px;
+  right: 12px;
+  bottom: calc(env(safe-area-inset-bottom) + 154px);
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+}
+
+body.is-touch-layout .quick-button,
+body.is-touch-layout .quick-stat {
+  min-width: 0;
+}
+
+body.is-touch-layout .quick-stat-keys {
+  grid-column: span 2;
+}
+
+body.is-touch-layout .touch-controls {
+  left: 12px;
+  right: 12px;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  gap: 16px;
+}
+
+body.is-touch-layout .info-drawer {
+  top: auto;
+  bottom: calc(env(safe-area-inset-bottom) + 236px);
+  left: 12px;
+  right: 12px;
+  width: auto;
+  max-height: min(38dvh, 360px);
+  border-radius: 8px;
+  background: rgba(16, 17, 16, 0.96);
+}
+
+body.is-touch-layout .info-drawer:not(.is-open) {
+  transform: translateY(calc(100% + 16px));
+}
+
 @media (max-width: 1180px) {
   .board-stage {
     padding-left: 18px;
