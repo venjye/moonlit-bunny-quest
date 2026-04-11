@@ -35,14 +35,19 @@ body {
 }
 
 button,
-canvas {
+canvas,
+input {
   touch-action: manipulation;
 }
 
-button {
+button,
+input {
   border: 0;
   font: inherit;
   color: inherit;
+}
+
+button {
   cursor: pointer;
 }
 
@@ -327,6 +332,40 @@ h1 {
   gap: 10px;
   flex-wrap: wrap;
   margin-top: 10px;
+}
+
+.save-code-field {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+  font-weight: 900;
+}
+
+.save-code-field span,
+.save-code-hint {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.save-code-field input {
+  width: 100%;
+  min-height: 42px;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(244, 210, 132, 0.34);
+  outline: 0;
+  font-family: "Noto Serif SC", serif;
+}
+
+.save-code-field input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(242, 199, 93, 0.18);
+}
+
+.save-code-hint {
+  margin: 8px 0 0;
+  line-height: 1.45;
 }
 
 .hud-button-alt {

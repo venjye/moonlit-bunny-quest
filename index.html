@@ -112,10 +112,22 @@
           </div>
           <div class="drawer-card">
             <h3>本局操作</h3>
+            <label class="save-code-field" for="save-code-input">
+              <span>存档码</span>
+              <input
+                id="save-code-input"
+                type="text"
+                inputmode="text"
+                maxlength="40"
+                autocomplete="nickname"
+                placeholder="输入任意字符串继续或存档"
+              />
+            </label>
+            <p class="save-code-hint" id="save-code-hint">同一台设备会记住上次使用的存档码。</p>
             <div class="guide-actions">
               <button class="hud-button" type="button" id="inspect-button">调查前方</button>
               <button class="hud-button" type="button" id="save-button">存档</button>
-              <button class="hud-button" type="button" id="load-button">读档</button>
+              <button class="hud-button" type="button" id="load-button">继续</button>
               <button class="hud-button hud-button-alt" type="button" id="restart-button">重开本局</button>
             </div>
           </div>

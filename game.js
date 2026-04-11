@@ -2,6 +2,9 @@ const canvas = document.querySelector("#game-canvas");
 const ctx = canvas.getContext("2d");
 const boardWrap = document.querySelector(".board-wrap");
 const SAVE_KEY = "bunny_adventure_save_v1";
+const SAVE_SLOT_PREFIX = "bunny_adventure_save_slot_v2:";
+const LAST_SAVE_CODE_KEY = "bunny_adventure_last_save_code_v2";
+const LAST_SAVE_CODE_COOKIE = "bunnyAdventureLastSaveCode";
 const TAU = Math.PI * 2;
 
 const ui = {
@@ -33,6 +36,8 @@ const ui = {
   inspectButton: document.querySelector("#inspect-button"),
   saveButton: document.querySelector("#save-button"),
   loadButton: document.querySelector("#load-button"),
+  saveCodeInput: document.querySelector("#save-code-input"),
+  saveCodeHint: document.querySelector("#save-code-hint"),
   endingPanel: document.querySelector("#ending-panel"),
   endingEyebrow: document.querySelector("#ending-eyebrow"),
   endingTitle: document.querySelector("#ending-title"),
@@ -166,6 +171,100 @@ function addLog(text) {
     item.textContent = line;
     ui.eventLog.appendChild(item);
   });
+}
+
+function readCookie(name) {
+  const match = document.cookie
+    .split("; ")
+    .find((item) => item.startsWith(`${encodeURIComponent(name)}=`));
+  return match ? decodeURIComponent(match.split("=").slice(1).join("=")) : "";
+}
+
+function writeCookie(name, value) {
+  document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}; max-age=31536000; path=/; SameSite=Lax`;
+}
+
+function normalizeSaveCode(value) {
+  return value.trim().slice(0, 40);
+}
+
+function saveSlotKey(code) {
+  return `${SAVE_SLOT_PREFIX}${encodeURIComponent(code)}`;
+}
+
+function lastSaveCode() {
+  return localStorage.getItem(LAST_SAVE_CODE_KEY) || readCookie(LAST_SAVE_CODE_COOKIE);
+}
+
+function rememberSaveCode(code) {
+  localStorage.setItem(LAST_SAVE_CODE_KEY, code);
+  writeCookie(LAST_SAVE_CODE_COOKIE, code);
+}
+
+function currentSaveCode() {
+  return normalizeSaveCode(ui.saveCodeInput.value);
+}
+
+function setSaveCodeStatus(text) {
+  ui.saveCodeHint.textContent = text;
+  ui.previewText.textContent = text;
+}
+
+function createSnapshot() {
+  return {
+    version: 2,
+    savedAt: Date.now(),
+    modeKey: state.modeKey,
+    floorIndex: state.floorIndex,
+    hero: state.hero,
+    floors: state.floors,
+    logs: state.logs,
+    seedBase: state.seedBase,
+  };
+}
+
+function applySnapshot(snapshot) {
+  state.modeKey = snapshot.modeKey;
+  state.floorIndex = snapshot.floorIndex;
+  state.hero = snapshot.hero;
+  state.floors = snapshot.floors;
+  state.logs = Array.isArray(snapshot.logs) ? snapshot.logs : [];
+  state.seedBase = snapshot.seedBase || state.config.seed;
+  state.ending = null;
+  state.shopContext = null;
+  state.feedbacks = [];
+  addLog(`读档回到 ${state.floorIndex + 1}F`);
+  inspectAround();
+  syncUi();
+  render();
+}
+
+function readSnapshot(raw) {
+  try {
+    const snapshot = JSON.parse(raw);
+    if (!snapshot || !snapshot.hero || !snapshot.floors || !snapshot.modeKey) {
+      return null;
+    }
+    return snapshot;
+  } catch {
+    return null;
+  }
+}
+
+function initSaveCode() {
+  const code = lastSaveCode();
+  if (!code) {
+    setSaveCodeStatus("输入一个存档码，点“继续”读取；没有存档时会从新局开始。");
+    return;
+  }
+
+  ui.saveCodeInput.value = code;
+  if (localStorage.getItem(saveSlotKey(code))) {
+    setSaveCodeStatus(`已记住存档码“${code}”，点“继续”回到上次进度。`);
+    return;
+  }
+
+  setSaveCodeStatus(`已记住存档码“${code}”，但这个码还没有本地存档。`);
 }
 
 function createHero() {
@@ -816,47 +915,63 @@ function closeEnding() {
 }
 
 function saveRun() {
-  const snapshot = {
-    modeKey: state.modeKey,
-    floorIndex: state.floorIndex,
-    hero: state.hero,
-    floors: state.floors,
-    logs: state.logs,
-    seedBase: state.seedBase,
-  };
+  const code = currentSaveCode();
+  if (!code) {
+    ui.statusLabel.textContent = "先输入一个存档码。";
+    setSaveCodeStatus("输入任意字符串作为你的存档码，下次输入同一个码就能继续。");
+    ui.saveCodeInput.focus();
+    return;
+  }
 
-  localStorage.setItem(SAVE_KEY, JSON.stringify(snapshot));
-  ui.statusLabel.textContent = `已存档在 ${state.floorIndex + 1}F。`;
-  addLog("已写入本地存档");
+  const snapshot = JSON.stringify(createSnapshot());
+  localStorage.setItem(saveSlotKey(code), snapshot);
+  localStorage.setItem(SAVE_KEY, snapshot);
+  rememberSaveCode(code);
+  ui.statusLabel.textContent = `已存到“${code}”的 ${state.floorIndex + 1}F。`;
+  setSaveCodeStatus(`已记住“${code}”，同一台设备下次可直接继续。`);
+  addLog(`已写入存档码 ${code}`);
 }
 
 function loadRun() {
-  const raw = localStorage.getItem(SAVE_KEY);
+  const code = currentSaveCode();
+  if (!code) {
+    ui.statusLabel.textContent = "先输入一个存档码。";
+    setSaveCodeStatus("输入任意字符串作为你的存档码；如果本机保存过这个码，会直接恢复进度。");
+    ui.saveCodeInput.focus();
+    return;
+  }
+
+  const raw = localStorage.getItem(saveSlotKey(code));
   if (!raw) {
-    ui.statusLabel.textContent = "还没有可读取的存档。";
+    const legacyRaw = code === lastSaveCode() ? localStorage.getItem(SAVE_KEY) : "";
+    if (legacyRaw) {
+      const legacySnapshot = readSnapshot(legacyRaw);
+      if (legacySnapshot) {
+        localStorage.setItem(saveSlotKey(code), JSON.stringify(legacySnapshot));
+        rememberSaveCode(code);
+        applySnapshot(legacySnapshot);
+        ui.statusLabel.textContent = `已把旧存档迁移到“${code}”。`;
+        setSaveCodeStatus(`已恢复“${code}”的旧存档。`);
+        return;
+      }
+    }
+    rememberSaveCode(code);
+    ui.statusLabel.textContent = `“${code}”还没有存档。`;
+    setSaveCodeStatus("没有找到这个存档码，本局开始后点“存档”就会绑定它。");
     return;
   }
 
-  const snapshot = JSON.parse(raw);
-  if (!snapshot || !snapshot.hero || !snapshot.floors || !snapshot.modeKey) {
+  const snapshot = readSnapshot(raw);
+  if (!snapshot) {
     ui.statusLabel.textContent = "存档内容损坏，无法读取。";
+    setSaveCodeStatus(`“${code}”的本地存档损坏了。`);
     return;
   }
 
-  state.modeKey = snapshot.modeKey;
-  state.floorIndex = snapshot.floorIndex;
-  state.hero = snapshot.hero;
-  state.floors = snapshot.floors;
-  state.logs = Array.isArray(snapshot.logs) ? snapshot.logs : [];
-  state.seedBase = snapshot.seedBase || state.config.seed;
-  state.ending = null;
-  state.shopContext = null;
-  state.feedbacks = [];
-  addLog(`读档回到 ${state.floorIndex + 1}F`);
-  ui.statusLabel.textContent = "本地存档已读取。";
-  inspectAround();
-  syncUi();
-  render();
+  rememberSaveCode(code);
+  applySnapshot(snapshot);
+  ui.statusLabel.textContent = `已读取“${code}”的本地存档。`;
+  setSaveCodeStatus(`当前存档码：${code}`);
 }
 
 function toggleSheet(targetId) {
@@ -1378,6 +1493,24 @@ function bindEvents() {
   ui.inspectButton.addEventListener("click", inspectAround);
   ui.saveButton.addEventListener("click", saveRun);
   ui.loadButton.addEventListener("click", loadRun);
+  ui.saveCodeInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      loadRun();
+    }
+  });
+  ui.saveCodeInput.addEventListener("change", () => {
+    const code = currentSaveCode();
+    if (!code) {
+      setSaveCodeStatus("输入一个存档码，点“继续”读取；没有存档时会从新局开始。");
+      return;
+    }
+    setSaveCodeStatus(
+      localStorage.getItem(saveSlotKey(code))
+        ? `找到“${code}”的本地存档，点“继续”恢复。`
+        : `“${code}”还没有本地存档，点“存档”会创建。`,
+    );
+  });
   ui.shopCloseButton.addEventListener("click", closeShop);
   ui.shopOffers.addEventListener("click", (event) => {
     const button = event.target.closest(".shop-offer");
@@ -1422,9 +1555,7 @@ async function boot() {
   ensureFloors(state.modeKey, 0);
   resetRun();
   startRenderLoop();
-  if (localStorage.getItem(SAVE_KEY)) {
-    ui.previewText.textContent = "本地有存档，想续关可以直接点“读档”。";
-  }
+  initSaveCode();
 }
 
 boot().catch((error) => {
