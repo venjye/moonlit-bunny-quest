@@ -36,6 +36,11 @@ const ui = {
   endingSummary: document.querySelector("#ending-summary"),
   endingRestartButton: document.querySelector("#ending-restart-button"),
   endingCloseButton: document.querySelector("#ending-close-button"),
+  shopPanel: document.querySelector("#shop-panel"),
+  shopTitle: document.querySelector("#shop-title"),
+  shopGreeting: document.querySelector("#shop-greeting"),
+  shopOffers: document.querySelector("#shop-offers"),
+  shopCloseButton: document.querySelector("#shop-close-button"),
   modeButtons: Array.from(document.querySelectorAll(".mode-button")),
   sheetButtons: Array.from(document.querySelectorAll("[data-target]")),
   touchButtons: Array.from(document.querySelectorAll(".touch-button")),
@@ -92,6 +97,8 @@ const state = {
   logs: [],
   seedBase: 0,
   ending: null,
+  shopContext: null,
+  feedbacks: [],
 };
 
 let animationFrameId = 0;
@@ -481,6 +488,7 @@ function syncUi() {
     button.classList.toggle("is-active", button.dataset.mode === state.modeKey);
   });
   renderHandbook();
+  syncShopPanel();
   syncEndingPanel();
 }
 
@@ -514,6 +522,8 @@ function renderHandbook() {
       const preview = combatPreview(state.hero, enemy);
       const item = document.createElement("li");
       item.className = "handbook-item";
+      item.classList.toggle("is-danger", !preview.canWin || preview.damage > state.hero.hp * 0.38);
+      item.classList.toggle("is-safe", preview.canWin && preview.damage <= state.hero.hp * 0.18);
       item.innerHTML = `
         <strong>${enemy.name}</strong>
         <span>HP ${enemy.hp} / ATK ${enemy.atk} / DEF ${enemy.def}</span>
@@ -521,6 +531,32 @@ function renderHandbook() {
       `;
       ui.handbookList.appendChild(item);
     });
+}
+
+function syncShopPanel() {
+  const active = Boolean(state.shopContext);
+  ui.shopPanel.classList.toggle("is-open", active);
+  ui.shopOffers.innerHTML = "";
+  if (!active) {
+    return;
+  }
+
+  const { npc } = state.shopContext;
+  ui.shopTitle.textContent = npc.title;
+  ui.shopGreeting.textContent = npc.greeting;
+  npc.offers.forEach((offer, index) => {
+    const button = document.createElement("button");
+    const affordable = state.hero.gold >= offer.cost;
+    button.className = "shop-offer";
+    button.type = "button";
+    button.disabled = !affordable;
+    button.dataset.offerIndex = String(index);
+    button.innerHTML = `
+      <strong>${offer.label}</strong>
+      <span>${offer.cost} 金币${affordable ? "" : " · 不够"}</span>
+    `;
+    ui.shopOffers.appendChild(button);
+  });
 }
 
 function syncEndingPanel() {
@@ -532,6 +568,17 @@ function syncEndingPanel() {
   ui.endingEyebrow.textContent = state.ending.eyebrow;
   ui.endingTitle.textContent = state.ending.title;
   ui.endingSummary.textContent = state.ending.summary;
+}
+
+function pushFeedback(text, x, y, tone = "neutral") {
+  state.feedbacks.push({
+    text,
+    x,
+    y,
+    tone,
+    born: performance.now(),
+  });
+  state.feedbacks = state.feedbacks.slice(-8);
 }
 
 function inspectAround() {
@@ -564,21 +611,41 @@ function inspectAround() {
   ui.previewText.textContent = previews[0] || "附近暂时没有关键目标。";
 }
 
-function resolveShop(npc) {
-  const affordable = npc.offers.find((offer) => state.hero.gold >= offer.cost);
-  if (!affordable) {
-    ui.statusLabel.textContent = `${npc.title}：金币不够。`;
-    ui.previewText.textContent = npc.greeting;
+function openShop(npc, x, y) {
+  state.shopContext = { npc, x, y };
+  ui.statusLabel.textContent = `${npc.title}：自己选，别被自动花钱。`;
+  ui.previewText.textContent = npc.greeting;
+  syncUi();
+}
+
+function closeShop() {
+  state.shopContext = null;
+  syncUi();
+}
+
+function buyShopOffer(index) {
+  if (!state.shopContext) {
     return;
   }
 
-  state.hero.gold -= affordable.cost;
-  if (affordable.type === "hp") state.hero.hp += affordable.value;
-  if (affordable.type === "atk") state.hero.atk += affordable.value;
-  if (affordable.type === "def") state.hero.def += affordable.value;
-  npc.bought = true;
-  addLog(`在 ${npc.title} 购买了 ${affordable.label}`);
-  ui.statusLabel.textContent = `${npc.title}：${affordable.label}`;
+  const offer = state.shopContext.npc.offers[index];
+  if (!offer) {
+    return;
+  }
+  if (state.hero.gold < offer.cost) {
+    ui.statusLabel.textContent = `金币不够，还差 ${offer.cost - state.hero.gold}。`;
+    return;
+  }
+
+  state.hero.gold -= offer.cost;
+  if (offer.type === "hp") state.hero.hp += offer.value;
+  if (offer.type === "atk") state.hero.atk += offer.value;
+  if (offer.type === "def") state.hero.def += offer.value;
+  state.shopContext.npc.bought = true;
+  pushFeedback(`-${offer.cost}G`, state.shopContext.x, state.shopContext.y, "gold");
+  addLog(`在 ${state.shopContext.npc.title} 购买了 ${offer.label}`);
+  ui.statusLabel.textContent = `${offer.label}，资源面板已更新。`;
+  syncUi();
 }
 
 function interactStory(tile) {
@@ -617,6 +684,9 @@ function moveHero(dx, dy) {
   if (state.ending) {
     return;
   }
+  if (state.shopContext) {
+    closeShop();
+  }
   const floor = currentFloor();
   const nextX = state.hero.x + dx;
   const nextY = state.hero.y + dy;
@@ -624,18 +694,21 @@ function moveHero(dx, dy) {
 
   if (tile.type === TILE_TYPES.WALL) {
     ui.statusLabel.textContent = "这里是墙。";
+    pushFeedback("墙", state.hero.x, state.hero.y, "blocked");
     return;
   }
 
   if (tile.type === TILE_TYPES.DOOR) {
     if (state.hero.keys[tile.color] <= 0) {
       ui.statusLabel.textContent = `${doorName(tile.color)} 还打不开。`;
+      pushFeedback("缺钥匙", nextX, nextY, "blocked");
       return;
     }
     state.hero.keys[tile.color] -= 1;
     setTile(floor, nextX, nextY, { type: TILE_TYPES.EMPTY });
     addLog(`打开 ${doorName(tile.color)}`);
     ui.statusLabel.textContent = `${doorName(tile.color)} 已打开。`;
+    pushFeedback("-1钥匙", nextX, nextY, "gold");
   }
 
   if (tile.type === TILE_TYPES.ENEMY) {
@@ -643,6 +716,7 @@ function moveHero(dx, dy) {
     if (!preview.canWin) {
       ui.statusLabel.textContent = `${tile.enemy.name} 现在打不过。`;
       ui.previewText.textContent = `${tile.enemy.name} 会造成 ${preview.damage === Infinity ? "致命" : preview.damage} 点伤害。`;
+      pushFeedback("危险", nextX, nextY, "danger");
       return;
     }
     state.hero.hp -= preview.damage;
@@ -650,6 +724,7 @@ function moveHero(dx, dy) {
     setTile(floor, nextX, nextY, { type: TILE_TYPES.EMPTY });
     addLog(`击败 ${tile.enemy.name}`);
     ui.statusLabel.textContent = `击败 ${tile.enemy.name}，损失 ${preview.damage} 生命。`;
+    pushFeedback(`-${preview.damage}HP`, nextX, nextY, preview.damage > state.hero.hp * 0.32 ? "danger" : "neutral");
   }
 
   if (tile.type === TILE_TYPES.ITEM) {
@@ -658,10 +733,8 @@ function moveHero(dx, dy) {
   }
 
   if (tile.type === TILE_TYPES.NPC) {
-    resolveShop(tile.npc);
-    if (tile.npc.bought) {
-      setTile(floor, nextX, nextY, { type: TILE_TYPES.EMPTY });
-    }
+    openShop(tile.npc, nextX, nextY);
+    return;
   }
 
   if (tile.type === TILE_TYPES.STORY) {
@@ -706,6 +779,8 @@ function resetRun() {
   state.floorIndex = 0;
   state.logs = [];
   state.ending = null;
+  state.shopContext = null;
+  state.feedbacks = [];
   if (state.modeKey === "endless") {
     state.floors.endless = [];
   }
@@ -764,6 +839,8 @@ function loadRun() {
   state.logs = Array.isArray(snapshot.logs) ? snapshot.logs : [];
   state.seedBase = snapshot.seedBase || state.config.seed;
   state.ending = null;
+  state.shopContext = null;
+  state.feedbacks = [];
   addLog(`读档回到 ${state.floorIndex + 1}F`);
   ui.statusLabel.textContent = "本地存档已读取。";
   inspectAround();
@@ -789,7 +866,7 @@ function fitCanvas() {
   canvas.width = Math.max(1, Math.floor(bounds.width * ratio));
   canvas.height = Math.max(1, Math.floor(bounds.height * ratio));
   ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingEnabled = false;
 }
 
 function boardMetrics() {
@@ -857,49 +934,40 @@ function drawSparkle(cx, cy, radius, color, alpha = 1) {
 }
 
 function drawTileBase(x, y, size, biome, row, col) {
-  const floorGradient = ctx.createLinearGradient(x, y, x + size, y + size);
-  floorGradient.addColorStop(0, "#355b52");
-  floorGradient.addColorStop(0.62, biome.floor);
-  floorGradient.addColorStop(1, "#1b2425");
-  ctx.fillStyle = floorGradient;
+  const gap = Math.max(1, Math.floor(size * 0.03));
+  ctx.fillStyle = biome.floor;
   ctx.fillRect(x, y, size, size);
-  ctx.fillStyle = (row + col) % 2 === 0 ? "rgba(250,236,193,0.08)" : "rgba(0,0,0,0.08)";
-  ctx.fillRect(x + 2, y + 2, size - 4, size - 4);
-  ctx.strokeStyle = "rgba(250,236,193,0.2)";
+  ctx.fillStyle = (row + col) % 2 === 0 ? "rgba(255,236,175,0.08)" : "rgba(0,0,0,0.12)";
+  ctx.fillRect(x + gap, y + gap, size - gap * 2, size - gap * 2);
+  ctx.fillStyle = "rgba(255,255,255,0.05)";
+  ctx.fillRect(x + size * 0.16, y + size * 0.18, size * 0.28, Math.max(1, size * 0.04));
+  ctx.fillRect(x + size * 0.56, y + size * 0.66, size * 0.25, Math.max(1, size * 0.04));
+  ctx.strokeStyle = "rgba(11,15,16,0.42)";
   ctx.lineWidth = 1;
-  ctx.strokeRect(x + 0.5, y + 0.5, size - 1, size - 1);
-  ctx.strokeStyle = "rgba(0,0,0,0.18)";
-  ctx.beginPath();
-  ctx.moveTo(x + size * 0.24, y + size * 0.5);
-  ctx.lineTo(x + size * 0.76, y + size * 0.5);
-  ctx.moveTo(x + size * 0.5, y + size * 0.24);
-  ctx.lineTo(x + size * 0.5, y + size * 0.76);
-  ctx.stroke();
+  ctx.strokeRect(Math.floor(x) + 0.5, Math.floor(y) + 0.5, size - 1, size - 1);
 }
 
 function drawWall(x, y, size, biome, row, col) {
-  const gradient = ctx.createLinearGradient(x, y, x, y + size);
-  gradient.addColorStop(0, "#c9b46d");
-  gradient.addColorStop(0.52, biome.wall);
-  gradient.addColorStop(1, "#263636");
-  ctx.fillStyle = gradient;
+  const mortar = Math.max(1, Math.floor(size * 0.04));
+  ctx.fillStyle = "#1c2020";
   ctx.fillRect(x, y, size, size);
-  ctx.fillStyle = "rgba(255,246,206,0.18)";
-  ctx.fillRect(x + 3, y + 5, size - 6, Math.max(2, size * 0.06));
-  ctx.fillRect(x + 3, y + size * 0.38, size - 6, Math.max(2, size * 0.05));
-  ctx.fillRect(x + 3, y + size * 0.7, size - 6, Math.max(2, size * 0.05));
-  ctx.fillStyle = "rgba(21,28,29,0.34)";
-  ctx.fillRect(x + size * 0.34, y + 7, Math.max(2, size * 0.05), size * 0.29);
-  ctx.fillRect(x + size * 0.68, y + 7, Math.max(2, size * 0.05), size * 0.29);
-  ctx.fillRect(x + size * 0.18, y + size * 0.41, Math.max(2, size * 0.05), size * 0.27);
-  ctx.fillRect(x + size * 0.52, y + size * 0.41, Math.max(2, size * 0.05), size * 0.27);
-  ctx.fillRect(x + size * 0.36, y + size * 0.73, Math.max(2, size * 0.05), size * 0.22);
-  ctx.fillRect(x + size * 0.76, y + size * 0.73, Math.max(2, size * 0.05), size * 0.22);
-  ctx.strokeStyle = "rgba(0,0,0,0.34)";
-  ctx.strokeRect(x + 0.5, y + 0.5, size - 1, size - 1);
-  if ((row + col) % 5 === 0) {
-    drawSparkle(x + size * 0.75, y + size * 0.25, size * 0.06, "#ffd36e", 0.45);
+  const brickHeight = Math.floor((size - mortar * 4) / 3);
+  for (let layer = 0; layer < 3; layer += 1) {
+    const y0 = y + mortar + layer * (brickHeight + mortar);
+    const offset = layer % 2 ? -size * 0.18 : 0;
+    for (let brick = 0; brick < 3; brick += 1) {
+      const x0 = x + offset + mortar + brick * (size * 0.42);
+      const width = size * 0.4 - mortar;
+      ctx.fillStyle = brick % 2 ? biome.wall : "#8b8a6a";
+      ctx.fillRect(x0, y0, width, brickHeight);
+      ctx.fillStyle = "rgba(255,244,205,0.12)";
+      ctx.fillRect(x0 + mortar, y0 + mortar, width - mortar * 2, Math.max(1, brickHeight * 0.18));
+      ctx.fillStyle = "rgba(0,0,0,0.2)";
+      ctx.fillRect(x0, y0 + brickHeight - mortar, width, mortar);
+    }
   }
+  ctx.strokeStyle = "rgba(0,0,0,0.56)";
+  ctx.strokeRect(Math.floor(x) + 0.5, Math.floor(y) + 0.5, size - 1, size - 1);
 }
 
 function drawStairs(x, y, size, time) {
@@ -1018,6 +1086,16 @@ function drawEnemy(tile, x, y, size, time) {
   ctx.lineTo(cx + size * 0.08, cy - size * 0.45);
   ctx.closePath();
   ctx.fill();
+  const preview = combatPreview(state.hero, tile.enemy);
+  const label = preview.damage === Infinity ? "破防-" : String(preview.damage);
+  const risky = !preview.canWin || preview.damage > state.hero.hp * 0.38;
+  ctx.font = `${Math.max(9, Math.floor(size * 0.2))}px "Noto Sans SC", sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = risky ? "#4f121d" : "#12261f";
+  ctx.fillRect(x + size * 0.08, y + size * 0.04, size * 0.84, size * 0.22);
+  ctx.fillStyle = risky ? "#ffd1dc" : "#bff8dc";
+  ctx.fillText(label, cx, y + size * 0.15);
   ctx.restore();
 }
 
@@ -1138,6 +1216,36 @@ function drawHero(x, y, size, time) {
   ctx.restore();
 }
 
+function drawFeedbacks(metrics, time) {
+  state.feedbacks = state.feedbacks.filter((feedback) => time - feedback.born < 900);
+  state.feedbacks.forEach((feedback) => {
+    const age = time - feedback.born;
+    const progress = Math.min(1, age / 900);
+    const x = metrics.offsetX + feedback.x * metrics.tileSize + metrics.tileSize / 2;
+    const y = metrics.offsetY + feedback.y * metrics.tileSize + metrics.tileSize * 0.26 - progress * metrics.tileSize * 0.38;
+    const color =
+      feedback.tone === "danger"
+        ? "#ff9aae"
+        : feedback.tone === "gold"
+          ? "#ffd36e"
+          : feedback.tone === "blocked"
+            ? "#d1d7d5"
+            : "#d9fbef";
+
+    ctx.save();
+    ctx.globalAlpha = 1 - progress * 0.82;
+    ctx.font = `700 ${Math.max(12, Math.floor(metrics.tileSize * 0.24))}px "Noto Sans SC", sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = "rgba(10,10,12,0.86)";
+    ctx.strokeText(feedback.text, x, y);
+    ctx.fillStyle = color;
+    ctx.fillText(feedback.text, x, y);
+    ctx.restore();
+  });
+}
+
 function render(time = performance.now()) {
   syncBoardFrame();
   fitCanvas();
@@ -1182,6 +1290,7 @@ function render(time = performance.now()) {
   }
 
   drawHero(metrics.offsetX + state.hero.x * size, metrics.offsetY + state.hero.y * size, size, time);
+  drawFeedbacks(metrics, time);
 }
 
 function startRenderLoop() {
@@ -1236,6 +1345,14 @@ function bindEvents() {
   ui.inspectButton.addEventListener("click", inspectAround);
   ui.saveButton.addEventListener("click", saveRun);
   ui.loadButton.addEventListener("click", loadRun);
+  ui.shopCloseButton.addEventListener("click", closeShop);
+  ui.shopOffers.addEventListener("click", (event) => {
+    const button = event.target.closest(".shop-offer");
+    if (!button || button.disabled) {
+      return;
+    }
+    buyShopOffer(Number(button.dataset.offerIndex));
+  });
   ui.endingRestartButton.addEventListener("click", () => {
     resetRun();
     render();
