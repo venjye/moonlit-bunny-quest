@@ -706,10 +706,18 @@ function ensureFloors(modeKey, neededIndex = 0) {
   }
 
   const wanted = state.config.modes[modeKey].floorCount;
-  if (state.floors[modeKey].length === wanted) {
+  if (wanted <= 0) {
     return;
   }
-  state.floors[modeKey] = Array.from({ length: wanted }, (_, index) => buildFloor(modeKey, index));
+
+  const floors = state.floors[modeKey];
+  const maxIndex = Math.min(neededIndex, wanted - 1);
+  if (floors.length > wanted) {
+    floors.length = wanted;
+  }
+  while (floors.length <= maxIndex) {
+    floors.push(buildFloor(modeKey, floors.length));
+  }
 }
 
 function combatPreview(hero, enemy) {
@@ -1106,9 +1114,7 @@ function resetRun() {
   state.ending = null;
   state.shopContext = null;
   state.feedbacks = [];
-  if (state.modeKey === "endless") {
-    state.floors.endless = [];
-  }
+  state.floors[state.modeKey] = [];
   ensureFloors(state.modeKey, 0);
   const floor = currentFloor();
   state.hero.x = floor.start.x;
