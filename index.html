@@ -11,7 +11,7 @@
       rel="icon"
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23233f3a'/%3E%3Cellipse cx='24' cy='24' rx='8' ry='18' fill='%23fff7e8'/%3E%3Cellipse cx='40' cy='24' rx='8' ry='18' fill='%23fff7e8'/%3E%3Ccircle cx='32' cy='38' r='16' fill='%23fff7e8'/%3E%3Ccircle cx='26' cy='36' r='3' fill='%23231a2f'/%3E%3Ccircle cx='38' cy='36' r='3' fill='%23231a2f'/%3E%3Cpath d='M29 43h6' stroke='%23231a2f' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E"
     />
-    <link rel="stylesheet" href="./styles.css?v=20260412-settings-v3" />
+    <link rel="stylesheet" href="./styles.css?v=20260412-settings-v4" />
   </head>
   <body class="ui-compact">
     <main class="game-app">
@@ -22,7 +22,7 @@
             <h1 id="game-title">月塔归兔</h1>
             <p id="game-hook" class="hook">小兔露娜要像真正的魔塔勇者那样，算清每一步，穿过百层月塔。</p>
           </div>
-          <div class="mode-strip" id="mode-switch">
+          <nav class="mode-strip" id="mode-switch" aria-label="游戏菜单">
             <div class="mode-group" aria-label="模式选择">
               <button class="mode-button is-active" type="button" data-mode="story">故事</button>
               <button class="mode-button" type="button" data-mode="adventure">冒险</button>
@@ -31,10 +31,10 @@
             <div class="mode-group utility-group" aria-label="信息面板">
               <button class="mode-button settings-button" type="button" data-settings-toggle>设置</button>
             </div>
-          </div>
+          </nav>
         </header>
 
-        <section class="floating-stats">
+        <section class="floating-stats" aria-label="核心状态">
           <div class="stat-card"><span>楼层</span><strong id="floor-label">1F</strong></div>
           <div class="stat-card"><span>生命</span><strong id="hp-label">0</strong></div>
           <div class="stat-card"><span>攻击</span><strong id="atk-label">0</strong></div>
@@ -146,24 +146,24 @@
               </div>
               <button class="sheet-toggle" type="button" id="settings-close-button">关闭</button>
             </div>
-            <div class="settings-section">
-              <h3>界面</h3>
+            <details class="settings-section" open>
+              <summary>界面</summary>
               <div class="density-options" role="group" aria-label="界面密度">
                 <button class="density-button is-active" type="button" data-density="compact">精简显示</button>
                 <button class="density-button" type="button" data-density="full">完整显示</button>
               </div>
               <p class="save-code-hint">精简显示只保留核心状态，卷宗、指南和存档从按钮进入。</p>
-            </div>
-            <div class="settings-section">
-              <h3>面板</h3>
+            </details>
+            <details class="settings-section">
+              <summary>面板</summary>
               <div class="guide-actions">
                 <button class="hud-button" type="button" data-target="journal-sheet">打开卷宗</button>
                 <button class="hud-button" type="button" data-target="guide-sheet">打开指南</button>
                 <button class="hud-button" type="button" data-inspect-action>调查前方</button>
               </div>
-            </div>
-            <div class="settings-section">
-              <h3>存档</h3>
+            </details>
+            <details class="settings-section">
+              <summary>存档</summary>
               <label class="save-code-field" for="save-code-input">
                 <span>存档码</span>
                 <input
@@ -180,13 +180,13 @@
                 <button class="hud-button" type="button" id="save-button">存档</button>
                 <button class="hud-button" type="button" id="load-button">读取存档</button>
               </div>
-            </div>
-            <div class="settings-section danger-zone">
-              <h3>本局</h3>
+            </details>
+            <details class="settings-section danger-zone">
+              <summary>本局</summary>
               <div class="guide-actions">
                 <button class="hud-button hud-button-alt" type="button" id="restart-button">重开本局</button>
               </div>
-            </div>
+            </details>
           </div>
         </section>
 
@@ -214,6 +214,6 @@
       </section>
     </main>
 
-    <script type="module" src="./game.js?v=20260412-settings-v3"></script>
+    <script type="module" src="./game.js?v=20260412-settings-v4"></script>
   </body>
 </html>
