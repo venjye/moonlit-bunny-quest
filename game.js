@@ -368,6 +368,18 @@ function currentSaveCode() {
   return normalizeSaveCode(ui.saveCodeInput.value);
 }
 
+function latestSaveCode() {
+  const [latestSlot] = readSaveSlotIndex();
+  return latestSlot ? normalizeSaveCode(latestSlot.code) : normalizeSaveCode(lastSaveCode());
+}
+
+function currentOrNewSaveCode() {
+  const code = currentSaveCode() || latestSaveCode() || nextDefaultSaveCode();
+  ui.saveCodeInput.value = code;
+  setActiveSaveCode(code);
+  return code;
+}
+
 function currentDensity() {
   return safeLocalGet(UI_DENSITY_KEY) === "full" ? "full" : "compact";
 }
@@ -1321,13 +1333,12 @@ function closeSettings() {
 }
 
 async function saveRun() {
-  const code = currentSaveCode() || askForSaveCode("存档");
+  const code = currentOrNewSaveCode();
   if (!code) {
-    ui.saveCodeInput.focus();
+    openSettings();
     return;
   }
 
-  setActiveSaveCode(code);
   const snapshot = JSON.stringify(createSnapshot());
   const saved = await writeSaveSlot(code, snapshot);
   if (!saved) {
@@ -1341,12 +1352,15 @@ async function saveRun() {
 }
 
 async function loadRun() {
-  const code = currentSaveCode() || askForSaveCode("继续");
+  const code = currentSaveCode() || latestSaveCode();
   if (!code) {
+    openSettings();
     ui.saveCodeInput.focus();
+    setSaveCodeStatus("还没有可读取的槽位。点“新建槽位”或“存档”会马上创建。");
     return;
   }
 
+  ui.saveCodeInput.value = code;
   const raw = await readSaveSlot(code);
   if (!raw) {
     let legacyRaw = "";

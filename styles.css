@@ -919,6 +919,31 @@ body.is-touch-layout .info-drawer:not(.is-open) {
   transform: translateY(calc(100% + 16px));
 }
 
+@media (hover: none), (pointer: coarse), (max-width: 1366px) and (min-height: 960px) and (max-height: 1400px) {
+  .mobile-quickbar,
+  .touch-controls {
+    display: flex;
+    position: fixed;
+  }
+
+  .mobile-quickbar {
+    left: 12px;
+    right: 12px;
+    bottom: calc(env(safe-area-inset-bottom) + 174px);
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .touch-controls {
+    left: 12px;
+    right: 12px;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    gap: 16px;
+    z-index: 4;
+  }
+}
+
 @media (max-width: 1180px) {
   .board-stage {
     padding-left: 18px;
