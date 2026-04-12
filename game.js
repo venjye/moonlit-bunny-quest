@@ -3,6 +3,7 @@ const ctx = canvas.getContext("2d");
 const boardWrap = document.querySelector(".board-wrap");
 const SAVE_KEY = "bunny_adventure_save_v1";
 const SAVE_SLOT_PREFIX = "bunny_adventure_save_slot_v2:";
+const SAVE_SLOT_INDEX_KEY = "bunny_adventure_save_slot_index_v2";
 const LAST_SAVE_CODE_KEY = "bunny_adventure_last_save_code_v2";
 const LAST_SAVE_CODE_COOKIE = "bunnyAdventureLastSaveCode";
 const SAVE_DB_NAME = "bunny_adventure_saves";
@@ -41,8 +42,10 @@ const ui = {
   inspectButtons: Array.from(document.querySelectorAll("[data-inspect-action]")),
   saveButton: document.querySelector("#save-button"),
   loadButton: document.querySelector("#load-button"),
+  newSaveButton: document.querySelector("#new-save-button"),
   saveCodeInput: document.querySelector("#save-code-input"),
   saveCodeHint: document.querySelector("#save-code-hint"),
+  saveSlotList: document.querySelector("#save-slot-list"),
   settingsPanel: document.querySelector("#settings-panel"),
   settingsButtons: Array.from(document.querySelectorAll("[data-settings-toggle]")),
   settingsCloseButton: document.querySelector("#settings-close-button"),
@@ -233,12 +236,115 @@ function safeLocalSet(key, value) {
   }
 }
 
+function safeLocalRemove(key) {
+  try {
+    localStorage.removeItem(key);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function normalizeSaveCode(value) {
   return value.trim().slice(0, 40);
 }
 
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, (char) => {
+    const entities = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    };
+    return entities[char];
+  });
+}
+
 function saveSlotKey(code) {
   return `${SAVE_SLOT_PREFIX}${encodeURIComponent(code)}`;
+}
+
+function readSaveSlotIndex() {
+  try {
+    const list = JSON.parse(safeLocalGet(SAVE_SLOT_INDEX_KEY) || "[]");
+    return Array.isArray(list)
+      ? list.filter((slot) => slot && typeof slot.code === "string" && slot.code.trim())
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeSaveSlotIndex(list) {
+  safeLocalSet(SAVE_SLOT_INDEX_KEY, JSON.stringify(list.slice(0, 12)));
+}
+
+function modeLabel(modeKey) {
+  return state.config?.modes?.[modeKey]?.label || modeKey || "本局";
+}
+
+function createSlotSummary(code, snapshotRaw = "") {
+  let snapshot = snapshotRaw ? readSnapshot(snapshotRaw) : null;
+  if (!snapshot && activeSaveCode === code && state.hero) {
+    snapshot = createSnapshot();
+  }
+  return {
+    code,
+    updatedAt: Date.now(),
+    modeKey: snapshot?.modeKey || state.modeKey,
+    floorIndex: Number.isInteger(snapshot?.floorIndex) ? snapshot.floorIndex : state.floorIndex,
+    hp: snapshot?.hero?.hp ?? state.hero?.hp ?? 0,
+  };
+}
+
+function upsertSaveSlotIndex(code, snapshotRaw = "") {
+  const normalized = normalizeSaveCode(code);
+  if (!normalized) {
+    return;
+  }
+  const nextSlot = createSlotSummary(normalized, snapshotRaw);
+  const rest = readSaveSlotIndex().filter((slot) => slot.code !== normalized);
+  writeSaveSlotIndex([nextSlot, ...rest]);
+  renderSaveSlots();
+}
+
+function formatSlotTime(value) {
+  if (!value) {
+    return "刚刚";
+  }
+  return new Intl.DateTimeFormat("zh-CN", {
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
+}
+
+function renderSaveSlots() {
+  if (!ui.saveSlotList) {
+    return;
+  }
+  const slots = readSaveSlotIndex();
+  if (slots.length === 0) {
+    ui.saveSlotList.innerHTML = '<p class="save-code-hint">还没有槽位。点“新建槽位”会马上保存当前进度。</p>';
+    return;
+  }
+  ui.saveSlotList.innerHTML = slots
+    .map(
+      (slot) => `
+        <div class="save-slot ${slot.code === activeSaveCode ? "is-active" : ""}">
+          <button class="save-slot-main" type="button" data-save-slot="${escapeHtml(slot.code)}">
+            <strong>${escapeHtml(slot.code)}</strong>
+            <span>${escapeHtml(modeLabel(slot.modeKey))} · ${Number(slot.floorIndex || 0) + 1}F · HP ${slot.hp || 0} · ${formatSlotTime(slot.updatedAt)}</span>
+          </button>
+          <button class="save-slot-action" type="button" data-load-slot="${escapeHtml(slot.code)}">读</button>
+          <button class="save-slot-action" type="button" data-delete-slot="${escapeHtml(slot.code)}">删</button>
+        </div>
+      `,
+    )
+    .join("");
 }
 
 function lastSaveCode() {
@@ -351,7 +457,11 @@ async function writeSaveSlot(code, snapshot) {
   } catch {
     wroteDb = false;
   }
-  return wroteLocal || wroteDb;
+  const saved = wroteLocal || wroteDb;
+  if (saved) {
+    upsertSaveSlotIndex(code, snapshot);
+  }
+  return saved;
 }
 
 async function persistActiveSave(silent = true) {
@@ -402,6 +512,7 @@ async function bindSaveCodeFromInput(createIfMissing = true) {
 
   rememberSaveCode(code);
   if (raw) {
+    upsertSaveSlotIndex(code, raw);
     const activeText = activeSaveCode === code ? "当前存档码" : "找到本地存档";
     setSaveCodeStatus(`${activeText}“${code}”，点“继续”恢复；点“存档”会覆盖为当前进度。`);
     return true;
@@ -422,6 +533,42 @@ async function bindSaveCodeFromInput(createIfMissing = true) {
     setSaveCodeStatus("当前浏览器没有开放本地存储，换 Safari/Chrome 打开后再存。");
   }
   return saved;
+}
+
+function nextDefaultSaveCode() {
+  const existing = new Set(readSaveSlotIndex().map((slot) => slot.code));
+  for (let index = 1; index <= 99; index += 1) {
+    const code = `露娜-${index}`;
+    if (!existing.has(code)) {
+      return code;
+    }
+  }
+  return `露娜-${Date.now().toString().slice(-4)}`;
+}
+
+async function newSaveRun() {
+  const code = nextDefaultSaveCode();
+  ui.saveCodeInput.value = code;
+  setActiveSaveCode(code);
+  const saved = await persistActiveSave(false);
+  if (saved) {
+    ui.statusLabel.textContent = `已新建“${code}”这个槽位。`;
+    setSaveCodeStatus(`当前槽位：${code}。移动后会自动保存。`);
+  }
+}
+
+async function deleteSaveSlot(code) {
+  const normalized = normalizeSaveCode(code);
+  if (!normalized) {
+    return;
+  }
+  safeLocalRemove(saveSlotKey(normalized));
+  writeSaveSlotIndex(readSaveSlotIndex().filter((slot) => slot.code !== normalized));
+  if (activeSaveCode === normalized) {
+    activeSaveCode = "";
+  }
+  renderSaveSlots();
+  setSaveCodeStatus(`已移除“${normalized}”这个槽位。`);
 }
 
 function scheduleSaveCodeBind() {
@@ -463,6 +610,9 @@ function applySnapshot(snapshot) {
   state.shopContext = null;
   state.feedbacks = [];
   activeSaveCode = normalizeSaveCode(snapshot.saveCode || activeSaveCode);
+  if (activeSaveCode) {
+    upsertSaveSlotIndex(activeSaveCode, JSON.stringify(snapshot));
+  }
   addLog(`读档回到 ${state.floorIndex + 1}F`);
   inspectAround();
   syncUi();
@@ -485,16 +635,20 @@ async function initSaveCode() {
   const code = lastSaveCode();
   if (!code) {
     setSaveCodeStatus("输入一个存档码，点“继续”读取；没有存档时会从新局开始。");
+    renderSaveSlots();
     return;
   }
 
   ui.saveCodeInput.value = code;
-  if (await readSaveSlot(code)) {
+  const raw = await readSaveSlot(code);
+  if (raw) {
+    upsertSaveSlotIndex(code, raw);
     setSaveCodeStatus(`已记住存档码“${code}”，点“继续”回到上次进度。`);
     return;
   }
 
   setSaveCodeStatus(`已记住存档码“${code}”，但这个码还没有本地存档。`);
+  renderSaveSlots();
 }
 
 function createHero() {
@@ -1786,6 +1940,28 @@ function bindEvents() {
   });
   ui.saveButton.addEventListener("click", saveRun);
   ui.loadButton.addEventListener("click", loadRun);
+  ui.newSaveButton.addEventListener("click", newSaveRun);
+  ui.saveSlotList.addEventListener("click", (event) => {
+    const slotButton = event.target.closest("[data-save-slot]");
+    const loadButton = event.target.closest("[data-load-slot]");
+    const deleteButton = event.target.closest("[data-delete-slot]");
+    if (slotButton) {
+      const code = slotButton.dataset.saveSlot;
+      ui.saveCodeInput.value = code;
+      setActiveSaveCode(code);
+      setSaveCodeStatus(`已选择“${code}”，点“读取存档”恢复，点“存档”覆盖。`);
+      renderSaveSlots();
+      return;
+    }
+    if (loadButton) {
+      ui.saveCodeInput.value = loadButton.dataset.loadSlot;
+      loadRun();
+      return;
+    }
+    if (deleteButton) {
+      deleteSaveSlot(deleteButton.dataset.deleteSlot);
+    }
+  });
   ui.saveCodeInput.addEventListener("keydown", (event) => {
     if (event.key === "Enter") {
       event.preventDefault();
