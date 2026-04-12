@@ -299,6 +299,10 @@ h1 {
   pointer-events: none;
 }
 
+.info-drawer.is-open {
+  z-index: 4;
+}
+
 .info-drawer-left:not(.is-open) {
   transform: translateX(calc(-100% - 18px));
 }
