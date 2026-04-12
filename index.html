@@ -11,7 +11,7 @@
       rel="icon"
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23233f3a'/%3E%3Cellipse cx='24' cy='24' rx='8' ry='18' fill='%23fff7e8'/%3E%3Cellipse cx='40' cy='24' rx='8' ry='18' fill='%23fff7e8'/%3E%3Ccircle cx='32' cy='38' r='16' fill='%23fff7e8'/%3E%3Ccircle cx='26' cy='36' r='3' fill='%23231a2f'/%3E%3Ccircle cx='38' cy='36' r='3' fill='%23231a2f'/%3E%3Cpath d='M29 43h6' stroke='%23231a2f' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E"
     />
-    <link rel="stylesheet" href="./styles.css?v=20260412-settings-v4" />
+    <link rel="stylesheet" href="./styles.css?v=20260412-settings-v5" />
   </head>
   <body class="ui-compact">
     <main class="game-app">
@@ -23,14 +23,7 @@
             <p id="game-hook" class="hook">小兔露娜要像真正的魔塔勇者那样，算清每一步，穿过百层月塔。</p>
           </div>
           <nav class="mode-strip" id="mode-switch" aria-label="游戏菜单">
-            <div class="mode-group" aria-label="模式选择">
-              <button class="mode-button is-active" type="button" data-mode="story">故事</button>
-              <button class="mode-button" type="button" data-mode="adventure">冒险</button>
-              <button class="mode-button" type="button" data-mode="endless">无尽</button>
-            </div>
-            <div class="mode-group utility-group" aria-label="信息面板">
-              <button class="mode-button settings-button" type="button" data-settings-toggle>设置</button>
-            </div>
+            <button class="mode-button settings-button" type="button" data-settings-toggle>菜单</button>
           </nav>
         </header>
 
@@ -115,7 +108,7 @@
         </aside>
 
         <section class="mobile-quickbar">
-          <button class="quick-button" type="button" data-settings-toggle>设置</button>
+          <button class="quick-button" type="button" data-settings-toggle>菜单</button>
           <div class="quick-stat"><span>层</span><strong id="mobile-floor-label">1F</strong></div>
           <div class="quick-stat"><span>HP</span><strong id="mobile-hp-label">0</strong></div>
           <div class="quick-stat quick-stat-detail"><span>ATK</span><strong id="mobile-atk-label">0</strong></div>
@@ -133,7 +126,7 @@
         </div>
         <div class="action-pad">
           <button class="touch-button action" type="button" data-key="inspect">查</button>
-          <button class="touch-button action" type="button" data-key="settings">设</button>
+          <button class="touch-button action" type="button" data-key="settings">菜单</button>
         </div>
         </section>
 
@@ -147,6 +140,15 @@
               <button class="sheet-toggle" type="button" id="settings-close-button">关闭</button>
             </div>
             <details class="settings-section" open>
+              <summary>模式</summary>
+              <div class="settings-options" role="group" aria-label="模式选择">
+                <button class="mode-button is-active" type="button" data-mode="story">故事</button>
+                <button class="mode-button" type="button" data-mode="adventure">冒险</button>
+                <button class="mode-button" type="button" data-mode="endless">无尽</button>
+              </div>
+              <p class="save-code-hint">切换模式会从该模式第一层重新开始。</p>
+            </details>
+            <details class="settings-section">
               <summary>界面</summary>
               <div class="density-options" role="group" aria-label="界面密度">
                 <button class="density-button is-active" type="button" data-density="compact">精简显示</button>
@@ -214,6 +216,6 @@
       </section>
     </main>
 
-    <script type="module" src="./game.js?v=20260412-settings-v4"></script>
+    <script type="module" src="./game.js?v=20260412-settings-v5"></script>
   </body>
 </html>
