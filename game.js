@@ -127,22 +127,26 @@ let activeSaveCode = "";
 let autoSaveBusy = false;
 let autoSaveQueued = false;
 let saveCodeInputTimer = 0;
+let lastTouchButtonActionAt = 0;
 
 function shouldUseTouchLayout() {
   const viewportWidth = window.innerWidth;
   const viewportHeight = window.innerHeight;
   const userAgent = navigator.userAgent || "";
+  const maxTouchPoints = navigator.maxTouchPoints || 0;
+  const isiPadDesktopMode = /Macintosh/i.test(userAgent) && maxTouchPoints > 1;
   const coarsePointer = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
   const touchCapable =
-    navigator.maxTouchPoints > 0 ||
+    maxTouchPoints > 0 ||
     "ontouchstart" in window ||
-    /ipad|iphone|android|mobile/i.test(userAgent);
+    /ipad|iphone|android|mobile/i.test(userAgent) ||
+    isiPadDesktopMode;
   const tabletViewport =
     viewportWidth <= 1366 &&
-    viewportHeight >= 900 &&
+    viewportHeight >= 700 &&
     viewportHeight <= 1400 &&
     Math.min(viewportWidth, viewportHeight) <= 1180;
-  return viewportWidth <= 720 || ((coarsePointer || touchCapable || tabletViewport) && viewportWidth <= 1366);
+  return viewportWidth <= 720 || isiPadDesktopMode || ((coarsePointer || touchCapable || tabletViewport) && viewportWidth <= 1366);
 }
 
 function syncBoardFrame() {
@@ -566,6 +570,9 @@ async function newSaveRun() {
   if (saved) {
     ui.statusLabel.textContent = `已新建“${code}”这个槽位。`;
     setSaveCodeStatus(`当前槽位：${code}。移动后会自动保存。`);
+  } else {
+    ui.statusLabel.textContent = "浏览器阻止了本地存档。";
+    setSaveCodeStatus("当前浏览器没有开放本地存储，换 Safari/Chrome 打开后再存。");
   }
 }
 
@@ -1386,9 +1393,9 @@ async function loadRun() {
       }
     }
     setActiveSaveCode(code);
-    queueAutoSave();
-    ui.statusLabel.textContent = `“${code}”还没有存档。`;
-    setSaveCodeStatus(`已新建“${code}”这个存档槽，后续进度会自动保存。`);
+    const saved = await persistActiveSave(false);
+    ui.statusLabel.textContent = saved ? `已新建“${code}”这个存档槽。` : "浏览器阻止了本地存档。";
+    setSaveCodeStatus(saved ? `已新建“${code}”这个存档槽，后续进度会自动保存。` : "当前浏览器没有开放本地存储，换 Safari/Chrome 打开后再存。");
     return;
   }
 
@@ -1885,6 +1892,50 @@ function startRenderLoop() {
   animationFrameId = requestAnimationFrame(tick);
 }
 
+function runTouchButtonAction(button) {
+  const key = button.dataset.key;
+  if (key === "inspect") {
+    inspectAround();
+    return;
+  }
+  if (key === "settings") {
+    openSettings();
+    render();
+    return;
+  }
+  if (key === "save") {
+    saveRun();
+    return;
+  }
+  if (key === "load") {
+    loadRun();
+    return;
+  }
+  if (key === "restart") {
+    resetRun();
+    render();
+    return;
+  }
+  const move = DIRECTION_MAP[key];
+  if (!move) {
+    return;
+  }
+  moveHero(move.x, move.y);
+  render();
+}
+
+function handleTouchButtonEvent(button, event) {
+  const now = Date.now();
+  if (event.type === "click" && now - lastTouchButtonActionAt < 350) {
+    return;
+  }
+  if (event.cancelable) {
+    event.preventDefault();
+  }
+  lastTouchButtonActionAt = now;
+  runTouchButtonAction(button);
+}
+
 function bindEvents() {
   window.addEventListener("resize", render);
   window.visualViewport?.addEventListener("resize", render);
@@ -2004,37 +2055,12 @@ function bindEvents() {
   ui.endingCloseButton.addEventListener("click", closeEnding);
 
   ui.touchButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      const key = button.dataset.key;
-      if (key === "inspect") {
-        inspectAround();
-        return;
-      }
-      if (key === "settings") {
-        openSettings();
-        render();
-        return;
-      }
-      if (key === "save") {
-        saveRun();
-        return;
-      }
-      if (key === "load") {
-        loadRun();
-        return;
-      }
-      if (key === "restart") {
-        resetRun();
-        render();
-        return;
-      }
-      const move = DIRECTION_MAP[key];
-      if (!move) {
-        return;
-      }
-      moveHero(move.x, move.y);
-      render();
-    });
+    if (window.PointerEvent) {
+      button.addEventListener("pointerdown", (event) => handleTouchButtonEvent(button, event));
+    } else {
+      button.addEventListener("touchstart", (event) => handleTouchButtonEvent(button, event), { passive: false });
+    }
+    button.addEventListener("click", (event) => handleTouchButtonEvent(button, event));
   });
 }
 

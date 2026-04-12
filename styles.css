@@ -790,6 +790,7 @@ body.ui-compact .board-stage {
   justify-content: space-between;
   align-items: flex-end;
   gap: 16px;
+  z-index: 45;
 }
 
 .dpad {
@@ -813,6 +814,9 @@ body.ui-compact .board-stage {
   border: 1px solid var(--line);
   box-shadow: var(--shadow);
   font-size: 1.4rem;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .touch-button.up,
@@ -882,6 +886,7 @@ body.is-touch-layout .mobile-quickbar {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 8px;
+  z-index: 44;
 }
 
 body.is-touch-layout .quick-button,
@@ -1189,6 +1194,31 @@ body.is-touch-layout .info-drawer:not(.is-open) {
 
   body.ui-compact.is-touch-layout .quick-stat-detail {
     display: none;
+  }
+}
+
+@media (max-width: 1366px) and (max-height: 1400px) {
+  .mobile-quickbar,
+  .touch-controls {
+    display: flex;
+    position: fixed;
+  }
+
+  .mobile-quickbar {
+    left: 12px;
+    right: 12px;
+    bottom: calc(env(safe-area-inset-bottom) + 174px);
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+    z-index: 44;
+  }
+
+  .touch-controls {
+    left: 12px;
+    right: 12px;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    gap: 16px;
   }
 }
 
