@@ -63,7 +63,8 @@ h3,
 .overlay-pill strong,
 .hud-button,
 .touch-button,
-.quick-button {
+.quick-button,
+.settings-card h2 {
   font-family: var(--font-display);
 }
 
@@ -91,7 +92,8 @@ h3,
 .touch-controls,
 .info-drawer,
 .overlay-strip,
-.shop-panel {
+.shop-panel,
+.settings-panel {
   position: absolute;
   z-index: 3;
 }
@@ -161,6 +163,11 @@ h1 {
 .mode-button.is-active {
   color: #1f1a16;
   background: linear-gradient(135deg, #ffd36e, #79d7c2);
+}
+
+.settings-button {
+  color: #1f1a16;
+  background: rgba(112, 208, 164, 0.94);
 }
 
 .floating-stats {
@@ -475,7 +482,8 @@ h1 {
 }
 
 .ending-panel,
-.shop-panel {
+.shop-panel,
+.settings-panel {
   position: absolute;
   inset: 0;
   z-index: 5;
@@ -490,13 +498,15 @@ h1 {
 }
 
 .ending-panel.is-open,
-.shop-panel.is-open {
+.shop-panel.is-open,
+.settings-panel.is-open {
   opacity: 1;
   pointer-events: auto;
 }
 
 .ending-card,
-.shop-card {
+.shop-card,
+.settings-card {
   width: min(560px, 100%);
   padding: 28px;
   border-radius: 8px;
@@ -506,7 +516,8 @@ h1 {
 }
 
 .ending-eyebrow,
-.shop-eyebrow {
+.shop-eyebrow,
+.settings-eyebrow {
   margin: 0 0 8px;
   color: rgba(255, 229, 184, 0.92);
   letter-spacing: 0;
@@ -515,7 +526,8 @@ h1 {
 }
 
 .ending-card h2,
-.shop-card h2 {
+.shop-card h2,
+.settings-card h2 {
   margin: 0;
   font-size: clamp(2rem, 5vw, 3rem);
 }
@@ -525,6 +537,27 @@ h1 {
   margin: 12px 0 0;
   color: var(--muted);
   line-height: 1.7;
+}
+
+.settings-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.settings-section {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(244, 210, 132, 0.26);
+}
+
+.settings-section h3 {
+  margin: 0;
+}
+
+.danger-zone {
+  border-top-color: rgba(231, 94, 115, 0.42);
 }
 
 .shop-offers {
@@ -681,7 +714,7 @@ body.is-touch-layout .mobile-quickbar {
   right: 12px;
   bottom: calc(env(safe-area-inset-bottom) + 174px);
   display: grid;
-  grid-template-columns: repeat(8, minmax(0, 1fr));
+  grid-template-columns: repeat(9, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -766,6 +799,10 @@ body.is-touch-layout .info-drawer:not(.is-open) {
 }
 
 @media (max-width: 720px) {
+  .mode-strip .settings-button {
+    display: none;
+  }
+
   .floating-top {
     gap: 8px;
   }
@@ -828,6 +865,7 @@ body.is-touch-layout .info-drawer:not(.is-open) {
   }
 
   .quick-button {
+    grid-column: span 2;
     padding: 8px 10px;
   }
 
@@ -867,8 +905,8 @@ body.is-touch-layout .info-drawer:not(.is-open) {
   }
 
   .action-pad {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    width: calc(100vw - 194px);
+    grid-template-columns: 1fr;
+    width: 62px;
   }
 
   .info-drawer {
@@ -892,7 +930,8 @@ body.is-touch-layout .info-drawer:not(.is-open) {
   }
 
   .ending-card,
-  .shop-card {
+  .shop-card,
+  .settings-card {
     padding: 22px;
     border-radius: 8px;
   }
@@ -934,8 +973,8 @@ body.is-touch-layout .info-drawer:not(.is-open) {
   }
 
   body.is-touch-layout .action-pad {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    width: calc(100vw - 194px);
+    grid-template-columns: 1fr;
+    width: 62px;
   }
 
   body.is-touch-layout .info-drawer {
@@ -960,7 +999,7 @@ body.is-touch-layout .info-drawer:not(.is-open) {
   }
 
   .action-pad {
-    width: calc(100vw - 176px);
+    width: 58px;
   }
 
   body.is-touch-layout .mobile-quickbar {
@@ -968,7 +1007,7 @@ body.is-touch-layout .info-drawer:not(.is-open) {
   }
 
   body.is-touch-layout .action-pad {
-    width: calc(100vw - 176px);
+    width: 58px;
   }
 }
 

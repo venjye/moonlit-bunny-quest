@@ -41,6 +41,9 @@ const ui = {
   loadButton: document.querySelector("#load-button"),
   saveCodeInput: document.querySelector("#save-code-input"),
   saveCodeHint: document.querySelector("#save-code-hint"),
+  settingsPanel: document.querySelector("#settings-panel"),
+  settingsButtons: Array.from(document.querySelectorAll("[data-settings-toggle]")),
+  settingsCloseButton: document.querySelector("#settings-close-button"),
   endingPanel: document.querySelector("#ending-panel"),
   endingEyebrow: document.querySelector("#ending-eyebrow"),
   endingTitle: document.querySelector("#ending-title"),
@@ -1135,6 +1138,15 @@ function closeEnding() {
   syncEndingPanel();
 }
 
+function openSettings() {
+  Object.values(ui.sheets).forEach((sheet) => sheet.classList.remove("is-open"));
+  ui.settingsPanel.classList.add("is-open");
+}
+
+function closeSettings() {
+  ui.settingsPanel.classList.remove("is-open");
+}
+
 async function saveRun() {
   const code = currentSaveCode() || askForSaveCode("存档");
   if (!code) {
@@ -1212,6 +1224,7 @@ function toggleSheet(targetId) {
     return;
   }
   const shouldOpen = !target.classList.contains("is-open");
+  closeSettings();
   Object.values(ui.sheets).forEach((sheet) => sheet.classList.remove("is-open"));
   if (shouldOpen) {
     target.classList.add("is-open");
@@ -1222,6 +1235,7 @@ function closeSheetsOnMobile() {
   if (window.innerWidth > 720) {
     return;
   }
+  closeSettings();
   Object.values(ui.sheets).forEach((sheet) => sheet.classList.remove("is-open"));
 }
 
@@ -1700,6 +1714,13 @@ function bindEvents() {
     if (key === " " || key === "enter") {
       event.preventDefault();
       inspectAround();
+      return;
+    }
+    if (key === "escape") {
+      closeSettings();
+      Object.values(ui.sheets).forEach((sheet) => sheet.classList.remove("is-open"));
+      closeEnding();
+      closeShop();
     }
   });
 
@@ -1718,11 +1739,21 @@ function bindEvents() {
     });
   });
 
+  ui.settingsButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      openSettings();
+      syncBoardFrame();
+      render();
+    });
+  });
+
   ui.restartButton.addEventListener("click", () => {
     resetRun();
+    closeSettings();
     render();
   });
 
+  ui.settingsCloseButton.addEventListener("click", closeSettings);
   ui.inspectButton.addEventListener("click", inspectAround);
   ui.saveButton.addEventListener("click", saveRun);
   ui.loadButton.addEventListener("click", loadRun);
@@ -1758,6 +1789,11 @@ function bindEvents() {
       const key = button.dataset.key;
       if (key === "inspect") {
         inspectAround();
+        return;
+      }
+      if (key === "settings") {
+        openSettings();
+        render();
         return;
       }
       if (key === "save") {
