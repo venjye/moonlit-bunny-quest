@@ -64,6 +64,7 @@ h3,
 .hud-button,
 .touch-button,
 .quick-button,
+.density-button,
 .settings-card h2 {
   font-family: var(--font-display);
 }
@@ -144,6 +145,15 @@ h1 {
 
 .mode-strip {
   display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.mode-group {
+  display: flex;
   gap: 10px;
   flex-wrap: wrap;
   justify-content: flex-end;
@@ -152,7 +162,8 @@ h1 {
 .mode-button,
 .hud-button,
 .sheet-toggle,
-.quick-button {
+.quick-button,
+.density-button {
   padding: 10px 16px;
   border-radius: 8px;
   background: rgba(37, 39, 42, 0.88);
@@ -168,6 +179,26 @@ h1 {
 .settings-button {
   color: #1f1a16;
   background: rgba(112, 208, 164, 0.94);
+}
+
+.utility-button {
+  background: rgba(31, 27, 34, 0.76);
+}
+
+body.ui-compact .hook {
+  display: none;
+}
+
+body.ui-compact .floating-stats {
+  top: 108px;
+  left: 50%;
+  right: auto;
+  width: min(760px, calc(100vw - 24px));
+  transform: translateX(-50%);
+}
+
+body.ui-compact .board-stage {
+  padding-top: clamp(148px, 16vh, 190px);
 }
 
 .floating-stats {
@@ -556,6 +587,22 @@ h1 {
   margin: 0;
 }
 
+.density-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.density-button {
+  min-height: 44px;
+}
+
+.density-button.is-active {
+  color: #1f1a16;
+  background: linear-gradient(135deg, #ffd36e, #79d7c2);
+}
+
 .danger-zone {
   border-top-color: rgba(231, 94, 115, 0.42);
 }
@@ -779,6 +826,11 @@ body.is-touch-layout .info-drawer:not(.is-open) {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
+  body.ui-compact .floating-stats {
+    top: 122px;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
   .board-stage {
     padding-top: 250px;
     padding-bottom: 170px;
@@ -800,6 +852,10 @@ body.is-touch-layout .info-drawer:not(.is-open) {
 
 @media (max-width: 720px) {
   .mode-strip .settings-button {
+    display: none;
+  }
+
+  .utility-group {
     display: none;
   }
 
@@ -867,6 +923,12 @@ body.is-touch-layout .info-drawer:not(.is-open) {
   .quick-button {
     grid-column: span 2;
     padding: 8px 10px;
+  }
+
+  body.ui-compact .quick-stat:nth-of-type(2),
+  body.ui-compact .quick-stat:nth-of-type(3),
+  body.ui-compact .quick-stat:nth-of-type(4) {
+    display: none;
   }
 
   .touch-controls {
@@ -982,6 +1044,12 @@ body.is-touch-layout .info-drawer:not(.is-open) {
     right: 10px;
     bottom: calc(env(safe-area-inset-bottom) + 224px);
     max-height: min(26dvh, 220px);
+  }
+
+  body.ui-compact.is-touch-layout .quick-stat:nth-of-type(2),
+  body.ui-compact.is-touch-layout .quick-stat:nth-of-type(3),
+  body.ui-compact.is-touch-layout .quick-stat:nth-of-type(4) {
+    display: none;
   }
 }
 

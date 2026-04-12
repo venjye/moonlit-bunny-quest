@@ -8,6 +8,7 @@ const LAST_SAVE_CODE_COOKIE = "bunnyAdventureLastSaveCode";
 const SAVE_DB_NAME = "bunny_adventure_saves";
 const SAVE_DB_VERSION = 1;
 const SAVE_DB_STORE = "slots";
+const UI_DENSITY_KEY = "bunny_adventure_ui_density_v1";
 const TAU = Math.PI * 2;
 
 const ui = {
@@ -55,7 +56,8 @@ const ui = {
   shopGreeting: document.querySelector("#shop-greeting"),
   shopOffers: document.querySelector("#shop-offers"),
   shopCloseButton: document.querySelector("#shop-close-button"),
-  modeButtons: Array.from(document.querySelectorAll(".mode-button")),
+  modeButtons: Array.from(document.querySelectorAll("[data-mode]")),
+  densityButtons: Array.from(document.querySelectorAll("[data-density]")),
   sheetButtons: Array.from(document.querySelectorAll("[data-target]")),
   touchButtons: Array.from(document.querySelectorAll(".touch-button")),
   sheets: {
@@ -257,6 +259,20 @@ function setActiveSaveCode(code) {
 
 function currentSaveCode() {
   return normalizeSaveCode(ui.saveCodeInput.value);
+}
+
+function currentDensity() {
+  return safeLocalGet(UI_DENSITY_KEY) === "full" ? "full" : "compact";
+}
+
+function setDensity(density) {
+  const nextDensity = density === "full" ? "full" : "compact";
+  document.body.classList.toggle("ui-full", nextDensity === "full");
+  document.body.classList.toggle("ui-compact", nextDensity !== "full");
+  ui.densityButtons.forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.density === nextDensity);
+  });
+  safeLocalSet(UI_DENSITY_KEY, nextDensity);
 }
 
 function askForSaveCode(actionLabel) {
@@ -1140,6 +1156,7 @@ function closeEnding() {
 
 function openSettings() {
   Object.values(ui.sheets).forEach((sheet) => sheet.classList.remove("is-open"));
+  setDensity(currentDensity());
   ui.settingsPanel.classList.add("is-open");
 }
 
@@ -1747,6 +1764,14 @@ function bindEvents() {
     });
   });
 
+  ui.densityButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      setDensity(button.dataset.density);
+      syncBoardFrame();
+      render();
+    });
+  });
+
   ui.restartButton.addEventListener("click", () => {
     resetRun();
     closeSettings();
@@ -1823,6 +1848,7 @@ async function boot() {
   const response = await fetch("./game-config.json");
   state.config = await response.json();
   state.seedBase = state.config.seed;
+  setDensity(currentDensity());
   bindEvents();
   ensureFloors(state.modeKey, 0);
   resetRun();
