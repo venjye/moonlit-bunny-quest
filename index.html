@@ -11,7 +11,7 @@
       rel="icon"
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23233f3a'/%3E%3Cellipse cx='24' cy='24' rx='8' ry='18' fill='%23fff7e8'/%3E%3Cellipse cx='40' cy='24' rx='8' ry='18' fill='%23fff7e8'/%3E%3Ccircle cx='32' cy='38' r='16' fill='%23fff7e8'/%3E%3Ccircle cx='26' cy='36' r='3' fill='%23231a2f'/%3E%3Ccircle cx='38' cy='36' r='3' fill='%23231a2f'/%3E%3Cpath d='M29 43h6' stroke='%23231a2f' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E"
     />
-    <link rel="stylesheet" href="./styles.css?v=20260412-settings-v2" />
+    <link rel="stylesheet" href="./styles.css?v=20260412-settings-v3" />
   </head>
   <body class="ui-compact">
     <main class="game-app">
@@ -29,8 +29,6 @@
               <button class="mode-button" type="button" data-mode="endless">无尽</button>
             </div>
             <div class="mode-group utility-group" aria-label="信息面板">
-              <button class="mode-button utility-button" type="button" data-target="journal-sheet">卷宗</button>
-              <button class="mode-button utility-button" type="button" data-target="guide-sheet">指南</button>
               <button class="mode-button settings-button" type="button" data-settings-toggle>设置</button>
             </div>
           </div>
@@ -93,7 +91,7 @@
             <h3>操作</h3>
             <p>方向键或 WASD 移动，空格或回车调查，手机和平板直接按底部触控键。</p>
             <div class="guide-actions">
-              <button class="hud-button" type="button" id="inspect-button">调查前方</button>
+              <button class="hud-button" type="button" data-inspect-action>调查前方</button>
             </div>
           </div>
           <div class="drawer-card">
@@ -117,13 +115,12 @@
         </aside>
 
         <section class="mobile-quickbar">
-          <button class="quick-button" type="button" data-target="journal-sheet">卷宗</button>
-          <button class="quick-button" type="button" data-target="guide-sheet">面板</button>
           <button class="quick-button" type="button" data-settings-toggle>设置</button>
+          <div class="quick-stat"><span>层</span><strong id="mobile-floor-label">1F</strong></div>
           <div class="quick-stat"><span>HP</span><strong id="mobile-hp-label">0</strong></div>
-          <div class="quick-stat"><span>ATK</span><strong id="mobile-atk-label">0</strong></div>
-          <div class="quick-stat"><span>DEF</span><strong id="mobile-def-label">0</strong></div>
-          <div class="quick-stat"><span>GOLD</span><strong id="mobile-gold-label">0</strong></div>
+          <div class="quick-stat quick-stat-detail"><span>ATK</span><strong id="mobile-atk-label">0</strong></div>
+          <div class="quick-stat quick-stat-detail"><span>DEF</span><strong id="mobile-def-label">0</strong></div>
+          <div class="quick-stat quick-stat-detail"><span>GOLD</span><strong id="mobile-gold-label">0</strong></div>
           <div class="quick-stat quick-stat-keys"><span>钥匙</span><strong id="mobile-keys-label">黄0 蓝0 红0</strong></div>
         </section>
 
@@ -156,6 +153,14 @@
                 <button class="density-button" type="button" data-density="full">完整显示</button>
               </div>
               <p class="save-code-hint">精简显示只保留核心状态，卷宗、指南和存档从按钮进入。</p>
+            </div>
+            <div class="settings-section">
+              <h3>面板</h3>
+              <div class="guide-actions">
+                <button class="hud-button" type="button" data-target="journal-sheet">打开卷宗</button>
+                <button class="hud-button" type="button" data-target="guide-sheet">打开指南</button>
+                <button class="hud-button" type="button" data-inspect-action>调查前方</button>
+              </div>
             </div>
             <div class="settings-section">
               <h3>存档</h3>
@@ -209,6 +214,6 @@
       </section>
     </main>
 
-    <script type="module" src="./game.js?v=20260412-settings-v2"></script>
+    <script type="module" src="./game.js?v=20260412-settings-v3"></script>
   </body>
 </html>

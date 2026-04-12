@@ -20,6 +20,7 @@ const ui = {
   defLabel: document.querySelector("#def-label"),
   goldLabel: document.querySelector("#gold-label"),
   keysLabel: document.querySelector("#keys-label"),
+  mobileFloorLabel: document.querySelector("#mobile-floor-label"),
   mobileHpLabel: document.querySelector("#mobile-hp-label"),
   mobileAtkLabel: document.querySelector("#mobile-atk-label"),
   mobileDefLabel: document.querySelector("#mobile-def-label"),
@@ -37,7 +38,7 @@ const ui = {
   progressBar: document.querySelector("#progress-bar"),
   progressDetail: document.querySelector("#progress-detail"),
   restartButton: document.querySelector("#restart-button"),
-  inspectButton: document.querySelector("#inspect-button"),
+  inspectButtons: Array.from(document.querySelectorAll("[data-inspect-action]")),
   saveButton: document.querySelector("#save-button"),
   loadButton: document.querySelector("#load-button"),
   saveCodeInput: document.querySelector("#save-code-input"),
@@ -809,6 +810,7 @@ function syncUi() {
   ui.defLabel.textContent = String(state.hero.def);
   ui.goldLabel.textContent = String(state.hero.gold);
   ui.keysLabel.textContent = keysText(state.hero.keys, true);
+  ui.mobileFloorLabel.textContent = `${state.floorIndex + 1}F`;
   ui.mobileHpLabel.textContent = String(state.hero.hp);
   ui.mobileAtkLabel.textContent = String(state.hero.atk);
   ui.mobileDefLabel.textContent = String(state.hero.def);
@@ -1779,7 +1781,9 @@ function bindEvents() {
   });
 
   ui.settingsCloseButton.addEventListener("click", closeSettings);
-  ui.inspectButton.addEventListener("click", inspectAround);
+  ui.inspectButtons.forEach((button) => {
+    button.addEventListener("click", inspectAround);
+  });
   ui.saveButton.addEventListener("click", saveRun);
   ui.loadButton.addEventListener("click", loadRun);
   ui.saveCodeInput.addEventListener("keydown", (event) => {
