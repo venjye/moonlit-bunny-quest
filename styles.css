@@ -11,6 +11,9 @@
   --accent: #f2c75d;
   --accent-alt: #70d0a4;
   --danger: #e75e73;
+  --touch-bottom-lift: 24px;
+  --keyboard-offset: 0px;
+  --visual-height: 100dvh;
   --shadow: 0 16px 0 rgba(0, 0, 0, 0.22), 0 26px 56px rgba(0, 0, 0, 0.38);
   --font-body: "LXGW WenKai Screen", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
   --font-display: "Hannotate SC", "HanziPen SC", "LXGW WenKai Screen", "Kaiti SC", "STKaiti", "KaiTi", "Songti SC", serif;
@@ -26,6 +29,8 @@ body {
   width: 100%;
   height: 100%;
   overflow: hidden;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
@@ -53,6 +58,7 @@ input {
 
 button {
   cursor: pointer;
+  white-space: nowrap;
 }
 
 h1,
@@ -782,11 +788,17 @@ body.ui-compact .board-stage {
   font-family: var(--font-display);
 }
 
+.quick-stat-save strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .touch-controls {
   display: none;
   left: 12px;
   right: 12px;
-  bottom: max(12px, env(safe-area-inset-bottom));
+  bottom: calc(max(12px, env(safe-area-inset-bottom)) + var(--touch-bottom-lift));
   justify-content: space-between;
   align-items: flex-end;
   gap: 16px;
@@ -848,6 +860,18 @@ body.ui-compact .board-stage {
 
 .touch-button.action {
   position: static;
+  width: auto;
+  min-width: 62px;
+  padding: 0 10px;
+  font-size: 1rem;
+}
+
+body.has-visual-keyboard .touch-controls {
+  bottom: calc(max(10px, env(safe-area-inset-bottom)) + min(var(--keyboard-offset), 260px) + 8px);
+}
+
+body.has-visual-keyboard .mobile-quickbar {
+  bottom: calc(max(10px, env(safe-area-inset-bottom)) + min(var(--keyboard-offset), 260px) + 132px);
 }
 
 body.is-touch-layout .hook,
@@ -882,9 +906,9 @@ body.is-touch-layout .touch-controls {
 body.is-touch-layout .mobile-quickbar {
   left: 12px;
   right: 12px;
-  bottom: calc(env(safe-area-inset-bottom) + 174px);
+  bottom: calc(env(safe-area-inset-bottom) + var(--touch-bottom-lift) + 174px);
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 8px;
   z-index: 44;
 }
@@ -902,16 +926,20 @@ body.ui-compact.is-touch-layout .quick-stat-detail {
   display: none;
 }
 
+body.ui-compact.is-touch-layout .mobile-quickbar {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
 body.is-touch-layout .touch-controls {
   left: 12px;
   right: 12px;
-  bottom: max(12px, env(safe-area-inset-bottom));
+  bottom: calc(max(12px, env(safe-area-inset-bottom)) + var(--touch-bottom-lift));
   gap: 16px;
 }
 
 body.is-touch-layout .info-drawer {
   top: auto;
-  bottom: calc(env(safe-area-inset-bottom) + 236px);
+  bottom: calc(env(safe-area-inset-bottom) + var(--touch-bottom-lift) + 236px);
   left: 12px;
   right: 12px;
   width: auto;
@@ -934,18 +962,18 @@ body.is-touch-layout .info-drawer:not(.is-open) {
   .mobile-quickbar {
     left: 12px;
     right: 12px;
-    bottom: calc(env(safe-area-inset-bottom) + 174px);
+    bottom: calc(env(safe-area-inset-bottom) + var(--touch-bottom-lift) + 174px);
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 8px;
   }
 
   .touch-controls {
     left: 12px;
     right: 12px;
-    bottom: max(12px, env(safe-area-inset-bottom));
+    bottom: calc(max(12px, env(safe-area-inset-bottom)) + var(--touch-bottom-lift));
     gap: 16px;
-    z-index: 4;
+    z-index: 45;
   }
 }
 
@@ -1004,6 +1032,10 @@ body.is-touch-layout .info-drawer:not(.is-open) {
 }
 
 @media (max-width: 720px) {
+  :root {
+    --touch-bottom-lift: 64px;
+  }
+
   .utility-group {
     display: none;
   }
@@ -1054,9 +1086,9 @@ body.is-touch-layout .info-drawer:not(.is-open) {
   .mobile-quickbar {
     left: 10px;
     right: 10px;
-    bottom: calc(env(safe-area-inset-bottom) + 144px);
+    bottom: calc(env(safe-area-inset-bottom) + var(--touch-bottom-lift) + 144px);
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 6px;
   }
 
@@ -1080,7 +1112,7 @@ body.is-touch-layout .info-drawer:not(.is-open) {
   .touch-controls {
     left: 10px;
     right: 10px;
-    bottom: max(10px, env(safe-area-inset-bottom));
+    bottom: calc(max(10px, env(safe-area-inset-bottom)) + var(--touch-bottom-lift));
     gap: 10px;
   }
 
@@ -1114,13 +1146,13 @@ body.is-touch-layout .info-drawer:not(.is-open) {
 
   .action-pad {
     grid-template-columns: repeat(2, 1fr);
-    width: 114px;
+    width: 136px;
   }
 
   .info-drawer {
     left: 10px;
     right: 10px;
-    bottom: calc(env(safe-area-inset-bottom) + 224px);
+    bottom: calc(env(safe-area-inset-bottom) + var(--touch-bottom-lift) + 224px);
     width: auto;
     max-height: min(26dvh, 220px);
     border-radius: 8px;
@@ -1147,15 +1179,15 @@ body.is-touch-layout .info-drawer:not(.is-open) {
   body.is-touch-layout .mobile-quickbar {
     left: 10px;
     right: 10px;
-    bottom: calc(env(safe-area-inset-bottom) + 150px);
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    bottom: calc(env(safe-area-inset-bottom) + var(--touch-bottom-lift) + 150px);
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 6px;
   }
 
   body.is-touch-layout .touch-controls {
     left: 10px;
     right: 10px;
-    bottom: max(10px, env(safe-area-inset-bottom));
+    bottom: calc(max(10px, env(safe-area-inset-bottom)) + var(--touch-bottom-lift));
     gap: 10px;
   }
 
@@ -1182,13 +1214,13 @@ body.is-touch-layout .info-drawer:not(.is-open) {
 
   body.is-touch-layout .action-pad {
     grid-template-columns: repeat(2, 1fr);
-    width: 114px;
+    width: 136px;
   }
 
   body.is-touch-layout .info-drawer {
     left: 10px;
     right: 10px;
-    bottom: calc(env(safe-area-inset-bottom) + 224px);
+    bottom: calc(env(safe-area-inset-bottom) + var(--touch-bottom-lift) + 224px);
     max-height: min(26dvh, 220px);
   }
 
@@ -1207,9 +1239,9 @@ body.is-touch-layout .info-drawer:not(.is-open) {
   .mobile-quickbar {
     left: 12px;
     right: 12px;
-    bottom: calc(env(safe-area-inset-bottom) + 174px);
+    bottom: calc(env(safe-area-inset-bottom) + var(--touch-bottom-lift) + 174px);
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 8px;
     z-index: 44;
   }
@@ -1217,7 +1249,7 @@ body.is-touch-layout .info-drawer:not(.is-open) {
   .touch-controls {
     left: 12px;
     right: 12px;
-    bottom: max(12px, env(safe-area-inset-bottom));
+    bottom: calc(max(12px, env(safe-area-inset-bottom)) + var(--touch-bottom-lift));
     gap: 16px;
   }
 }
@@ -1232,19 +1264,29 @@ body.is-touch-layout .info-drawer:not(.is-open) {
   }
 
   .mobile-quickbar {
-    bottom: calc(env(safe-area-inset-bottom) + 132px);
+    bottom: calc(env(safe-area-inset-bottom) + var(--touch-bottom-lift) + 132px);
   }
 
   .action-pad {
-    width: 118px;
+    width: 132px;
+  }
+
+  .touch-button.action {
+    min-width: 54px;
+    padding: 0 8px;
   }
 
   body.is-touch-layout .mobile-quickbar {
-    bottom: calc(env(safe-area-inset-bottom) + 132px);
+    bottom: calc(env(safe-area-inset-bottom) + var(--touch-bottom-lift) + 132px);
   }
 
   body.is-touch-layout .action-pad {
-    width: 118px;
+    width: 132px;
+  }
+
+  body.is-touch-layout .touch-button.action {
+    min-width: 54px;
+    padding: 0 8px;
   }
 }
 
@@ -1289,7 +1331,7 @@ body.is-touch-layout .info-drawer:not(.is-open) {
   .mobile-quickbar {
     left: 8px;
     right: 8px;
-    bottom: calc(env(safe-area-inset-bottom) + 162px);
+    bottom: calc(env(safe-area-inset-bottom) + var(--touch-bottom-lift) + 162px);
   }
 
   .touch-controls {
@@ -1299,27 +1341,28 @@ body.is-touch-layout .info-drawer:not(.is-open) {
   }
 
   .dpad {
-    width: 178px;
-    height: 144px;
+    width: 146px;
+    height: 118px;
   }
 
   .touch-button {
-    width: 58px;
-    height: 58px;
+    width: 48px;
+    height: 48px;
   }
 
   .touch-button.up,
   .touch-button.down {
-    left: 60px;
+    left: 49px;
   }
 
   .touch-button.left,
   .touch-button.right {
-    top: 42px;
+    top: 35px;
   }
 
   .action-pad {
-    width: 128px;
+    width: 112px;
+    gap: 8px;
   }
 
   body.is-touch-layout .board-stage {
@@ -1336,7 +1379,7 @@ body.is-touch-layout .info-drawer:not(.is-open) {
   body.is-touch-layout .mobile-quickbar {
     left: 8px;
     right: 8px;
-    bottom: calc(env(safe-area-inset-bottom) + 162px);
+    bottom: calc(env(safe-area-inset-bottom) + var(--touch-bottom-lift) + 162px);
   }
 
   body.is-touch-layout .touch-controls {
@@ -1346,26 +1389,35 @@ body.is-touch-layout .info-drawer:not(.is-open) {
   }
 
   body.is-touch-layout .dpad {
-    width: 178px;
-    height: 144px;
+    width: 146px;
+    height: 118px;
   }
 
   body.is-touch-layout .touch-button {
-    width: 58px;
-    height: 58px;
+    width: 48px;
+    height: 48px;
   }
 
   body.is-touch-layout .touch-button.up,
   body.is-touch-layout .touch-button.down {
-    left: 60px;
+    left: 49px;
   }
 
   body.is-touch-layout .touch-button.left,
   body.is-touch-layout .touch-button.right {
-    top: 42px;
+    top: 35px;
   }
 
   body.is-touch-layout .action-pad {
-    width: 128px;
+    width: 112px;
+    gap: 8px;
   }
+}
+
+body.is-touch-layout.has-visual-keyboard .touch-controls {
+  bottom: calc(max(10px, env(safe-area-inset-bottom)) + min(var(--keyboard-offset), 260px) + 8px);
+}
+
+body.is-touch-layout.has-visual-keyboard .mobile-quickbar {
+  bottom: calc(max(10px, env(safe-area-inset-bottom)) + min(var(--keyboard-offset), 260px) + 132px);
 }

@@ -11,7 +11,7 @@
       rel="icon"
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23233f3a'/%3E%3Cellipse cx='24' cy='24' rx='8' ry='18' fill='%23fff7e8'/%3E%3Cellipse cx='40' cy='24' rx='8' ry='18' fill='%23fff7e8'/%3E%3Ccircle cx='32' cy='38' r='16' fill='%23fff7e8'/%3E%3Ccircle cx='26' cy='36' r='3' fill='%23231a2f'/%3E%3Ccircle cx='38' cy='36' r='3' fill='%23231a2f'/%3E%3Cpath d='M29 43h6' stroke='%23231a2f' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E"
     />
-    <link rel="stylesheet" href="./styles.css?v=20260412-ipad-save-v2" />
+    <link rel="stylesheet" href="./styles.css?v=20260412-iphone-save-v5" />
   </head>
   <body class="ui-compact">
     <main class="game-app">
@@ -115,6 +115,7 @@
           <div class="quick-stat quick-stat-detail"><span>DEF</span><strong id="mobile-def-label">0</strong></div>
           <div class="quick-stat quick-stat-detail"><span>GOLD</span><strong id="mobile-gold-label">0</strong></div>
           <div class="quick-stat quick-stat-keys"><span>钥匙</span><strong id="mobile-keys-label">黄0 蓝0 红0</strong></div>
+          <div class="quick-stat quick-stat-save"><span>存档</span><strong id="mobile-save-label">未绑定</strong></div>
         </section>
 
         <section class="touch-controls" aria-label="触屏操作区">
@@ -125,9 +126,9 @@
           <button class="touch-button right" type="button" data-key="arrowright">→</button>
         </div>
         <div class="action-pad">
-          <button class="touch-button action" type="button" data-key="inspect">查</button>
-          <button class="touch-button action" type="button" data-key="save">存</button>
-          <button class="touch-button action" type="button" data-key="load">读</button>
+          <button class="touch-button action" type="button" data-key="inspect" aria-label="调查">查</button>
+          <button class="touch-button action" type="button" data-key="save" aria-label="存档">存</button>
+          <button class="touch-button action" type="button" data-key="load" aria-label="读档">读</button>
           <button class="touch-button action" type="button" data-key="settings">菜单</button>
         </div>
         </section>
@@ -220,6 +221,6 @@
       </section>
     </main>
 
-    <script type="module" src="./game.js?v=20260412-ipad-save-v2"></script>
+    <script type="module" src="./game.js?v=20260412-iphone-save-v5"></script>
   </body>
 </html>

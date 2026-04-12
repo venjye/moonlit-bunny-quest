@@ -27,6 +27,7 @@ const ui = {
   mobileDefLabel: document.querySelector("#mobile-def-label"),
   mobileGoldLabel: document.querySelector("#mobile-gold-label"),
   mobileKeysLabel: document.querySelector("#mobile-keys-label"),
+  mobileSaveLabel: document.querySelector("#mobile-save-label"),
   chapterLabel: document.querySelector("#chapter-label"),
   rankLabel: document.querySelector("#rank-label"),
   statusLabel: document.querySelector("#status-label"),
@@ -128,6 +129,26 @@ let autoSaveBusy = false;
 let autoSaveQueued = false;
 let saveCodeInputTimer = 0;
 let lastTouchButtonActionAt = 0;
+
+function blurActiveEditable() {
+  const active = document.activeElement;
+  if (!active || typeof active.blur !== "function") {
+    return;
+  }
+  const tagName = active.tagName?.toLowerCase();
+  if (tagName === "input" || tagName === "textarea" || active.isContentEditable) {
+    active.blur();
+  }
+}
+
+function syncViewportState() {
+  const viewport = window.visualViewport;
+  const keyboardOffset = viewport ? Math.max(0, Math.round(window.innerHeight - viewport.height - viewport.offsetTop)) : 0;
+  const visualHeight = viewport ? Math.round(viewport.height) : window.innerHeight;
+  document.documentElement.style.setProperty("--keyboard-offset", `${keyboardOffset}px`);
+  document.documentElement.style.setProperty("--visual-height", `${visualHeight}px`);
+  document.body.classList.toggle("has-visual-keyboard", keyboardOffset > 80);
+}
 
 function shouldUseTouchLayout() {
   const viewportWidth = window.innerWidth;
@@ -360,12 +381,17 @@ function rememberSaveCode(code) {
   writeCookie(LAST_SAVE_CODE_COOKIE, code);
 }
 
+function syncSaveLabel() {
+  ui.mobileSaveLabel.textContent = activeSaveCode || latestSaveCode() || "未绑定";
+}
+
 function setActiveSaveCode(code) {
   activeSaveCode = normalizeSaveCode(code);
   if (activeSaveCode) {
     ui.saveCodeInput.value = activeSaveCode;
     rememberSaveCode(activeSaveCode);
   }
+  syncSaveLabel();
 }
 
 function currentSaveCode() {
@@ -517,6 +543,7 @@ async function bindSaveCodeFromInput(createIfMissing = true) {
   const code = currentSaveCode();
   if (!code) {
     activeSaveCode = "";
+    syncSaveLabel();
     setSaveCodeStatus("输入一个存档码会立即创建本地存档；已有存档点“继续”读取。");
     return false;
   }
@@ -585,6 +612,7 @@ async function deleteSaveSlot(code) {
   writeSaveSlotIndex(readSaveSlotIndex().filter((slot) => slot.code !== normalized));
   if (activeSaveCode === normalized) {
     activeSaveCode = "";
+    syncSaveLabel();
   }
   renderSaveSlots();
   setSaveCodeStatus(`已移除“${normalized}”这个槽位。`);
@@ -989,6 +1017,7 @@ function syncUi() {
   ui.mobileDefLabel.textContent = String(state.hero.def);
   ui.mobileGoldLabel.textContent = String(state.hero.gold);
   ui.mobileKeysLabel.textContent = keysText(state.hero.keys, true);
+  syncSaveLabel();
   ui.chapterLabel.textContent = floor.chapter;
   ui.rankLabel.textContent = heroRank();
   ui.objectiveText.textContent = floor.objective;
@@ -1330,12 +1359,14 @@ function closeEnding() {
 }
 
 function openSettings() {
+  blurActiveEditable();
   Object.values(ui.sheets).forEach((sheet) => sheet.classList.remove("is-open"));
   setDensity(currentDensity());
   ui.settingsPanel.classList.add("is-open");
 }
 
 function closeSettings() {
+  blurActiveEditable();
   ui.settingsPanel.classList.remove("is-open");
 }
 
@@ -1362,7 +1393,6 @@ async function loadRun() {
   const code = currentSaveCode() || latestSaveCode();
   if (!code) {
     openSettings();
-    ui.saveCodeInput.focus();
     setSaveCodeStatus("还没有可读取的槽位。点“新建槽位”或“存档”会马上创建。");
     return;
   }
@@ -1926,6 +1956,7 @@ function runTouchButtonAction(button) {
 
 function handleTouchButtonEvent(button, event) {
   const now = Date.now();
+  blurActiveEditable();
   if (event.type === "click" && now - lastTouchButtonActionAt < 350) {
     return;
   }
@@ -1937,8 +1968,13 @@ function handleTouchButtonEvent(button, event) {
 }
 
 function bindEvents() {
-  window.addEventListener("resize", render);
-  window.visualViewport?.addEventListener("resize", render);
+  const handleViewportChange = () => {
+    syncViewportState();
+    render();
+  };
+  window.addEventListener("resize", handleViewportChange);
+  window.visualViewport?.addEventListener("resize", handleViewportChange);
+  window.visualViewport?.addEventListener("scroll", handleViewportChange);
 
   document.addEventListener("keydown", (event) => {
     const key = event.key.toLowerCase();
@@ -2068,6 +2104,7 @@ async function boot() {
   const response = await fetch("./game-config.json");
   state.config = await response.json();
   state.seedBase = state.config.seed;
+  syncViewportState();
   setDensity(currentDensity());
   bindEvents();
   ensureFloors(state.modeKey, 0);
