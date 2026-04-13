@@ -1362,11 +1362,13 @@ function openSettings() {
   blurActiveEditable();
   Object.values(ui.sheets).forEach((sheet) => sheet.classList.remove("is-open"));
   setDensity(currentDensity());
+  document.body.classList.add("has-settings-open");
   ui.settingsPanel.classList.add("is-open");
 }
 
 function closeSettings() {
   blurActiveEditable();
+  document.body.classList.remove("has-settings-open");
   ui.settingsPanel.classList.remove("is-open");
 }
 

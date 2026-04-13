@@ -903,6 +903,11 @@ body.is-touch-layout .touch-controls {
   position: fixed;
 }
 
+body.is-touch-layout.has-settings-open .mobile-quickbar,
+body.is-touch-layout.has-settings-open .touch-controls {
+  display: none;
+}
+
 body.is-touch-layout .mobile-quickbar {
   left: 12px;
   right: 12px;
